@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
-import DesktopHomeLayout from "../modules/home/components/desktop/layout";
-import MobileHomeLayout from "../modules/home/components/mobile/layout";
 
-export default function Home() {
+
+export default function Dash() {
   const isDesktop = useMediaQuery({
     query: '(min-width: 1000px)'
   });
@@ -18,14 +17,12 @@ export default function Home() {
 
 
   if (showDesktop) return (
-    <>
-      <DesktopHomeLayout />
-    </>
+    <div>DesktopDash</div>
   );
 
   else return (
     <>
-      <MobileHomeLayout />
+      <div>MobileDash</div>
     </>
   );
 }

@@ -1,8 +1,30 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import Image from "next/image";
+import Link from "next/link";
+import { useSignInMutation } from "modules/home/hooks/useSignInMutation";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 
 export default function DesktopHomeLayout() {
+
+  const router = useRouter();
+
+  const mutation = useSignInMutation();
+
+  useEffect(() => {
+    if (router.query.code) {
+      mutation.mutate({
+        code: router.query.code as string
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [, router.query]);
+
+  useEffect(() => {
+    if (mutation.isSuccess) router.push("/dash");
+  }, [mutation, mutation.data, router]);
+
   return (
     <div className="w-screen h-screen">
       <div className="w-full h-3/4 z-20 flex justify-center items-center gap-16">
@@ -13,11 +35,16 @@ export default function DesktopHomeLayout() {
             Tell Develamo what technology stack you want to build your next project with and we will handle the rest!
             A better learning experience and the chance to build new connections with other coders is just a few clicks away.
           </p>
-          <button className="btn btn-primary">
-            Sign in with Github
-            <span className="mx-4">|</span>
-            <FontAwesomeIcon icon={faGithub} className="text-white" size="2x"/>
-          </button>
+          <Link href={process.env.NEXT_PUBLIC_GITHUB_URL || "#"} className="w-full">
+            <button
+              className={mutation.isLoading ? "btn btn-primary w-full loading" : "btn btn-primary w-full"}
+              disabled={mutation.isLoading}
+            >
+              Sign in with Github
+              <span className="mx-4">|</span>
+              <FontAwesomeIcon icon={faGithub} className="text-white" size="2x"/>
+            </button>
+          </Link>
         </div>
         <Image src={"/images/DEVELAMO ELEPHANT WHT.png"} alt="" width={"360"} height={"252"}/>
       </div>
