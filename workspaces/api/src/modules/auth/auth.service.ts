@@ -75,11 +75,11 @@ export class AuthService {
       );
 
     const payload = {
-      developerId: developer.id,
+      id: developer.id,
       email: developer.email,
       role: AuthRolesEnum.DEVELOPER,
-      username: developer.githubUsername,
-      pictureURL: developer.avatarURL,
+      githubUsername: developer.githubUsername,
+      avatarURL: developer.avatarURL,
     };
 
     return await this.jwtService.signAsync(payload);

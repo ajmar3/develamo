@@ -1,3 +1,4 @@
+import { DevAuthProvider } from "modules/auth/components/developer-auth-provider";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 
@@ -17,7 +18,9 @@ export default function Dash() {
 
 
   if (showDesktop) return (
-    <div>DesktopDash</div>
+    <DevAuthProvider>
+      <div>DesktopDash</div>
+    </DevAuthProvider>
   );
 
   else return (
