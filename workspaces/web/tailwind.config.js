@@ -11,6 +11,9 @@ module.exports = {
         "normal": ["Open Sans", "sans-serif"],
         "header": ["Ubuntu", "sans-serif"]
       },
+      maxWidth: {
+        "8xl": "1920px"
+      }
     },
   },
   plugins: [
