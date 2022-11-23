@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// system models
+
+model SeedHistory {
+  id String  @id
+  seededAt  DateTime  @default(now())
+}
+
 // models
 
 model Developer {
@@ -20,5 +27,11 @@ model Developer {
   bio  String?
   name  String?
   avatarURL String
+  createdAt DateTime  @default(now())
+}
+
+model Tag {
+  id  String  @id @default(uuid())
+  title String
   createdAt DateTime  @default(now())
 }
