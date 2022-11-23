@@ -6,6 +6,8 @@ import { JwtAuthGuard } from "../auth/jwt.guard";
 import { RolesGuard } from "../auth/roles.guard";
 import { DatabaseModule } from "../database/database.module";
 import { DeveloperModule } from "../developer/developer.module";
+import { ProjectModule } from "../project/project.module";
+import { SeederService } from "./app.seeder";
 
 @Module({
   imports: [
@@ -15,9 +17,11 @@ import { DeveloperModule } from "../developer/developer.module";
     DatabaseModule,
     AuthModule,
     DeveloperModule,
+    ProjectModule,
   ],
   controllers: [],
   providers: [
+    SeederService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
