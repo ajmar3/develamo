@@ -5,11 +5,18 @@ export interface IProjectFilterStore {
   tags: string[];
   addTag: (newTag: string) => void;
   removeTag: (removeTag: string) => void;
-  
+  availableTags: { id: string, title: string }[];
+  setAvailableTags: (tags: { id: string, title: string }[]) => void;
+  selectedTagInfo: { id: string, title: string }[];
+  setSelectedTagInfo: (tags: { id: string, title: string }[]) => void;
 }
 
 export const useProjectFilterStore = create<IProjectFilterStore>(set => ({
   tags: [],
   addTag: (newTag: string) => set(state => ({ tags: [...state.tags, newTag] })),
   removeTag: (removeTag: string) => set(state => ({ tags:  state.tags.filter(x => x != removeTag)})),
+  availableTags: [],
+  setAvailableTags: (tags: { id: string, title: string }[]) => set(state => ({ availableTags: tags })),
+  selectedTagInfo: [],
+  setSelectedTagInfo: (tags: { id: string, title: string }[]) => set(state => ({ selectedTagInfo: tags }))
 }));
