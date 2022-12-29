@@ -30,10 +30,9 @@ export const FindProjectFilters = () => {
     const newAvailableList = filterStore.allTags.filter(
       (x) => !filterStore.tags.includes(x.id)
     );
-    console.log(newAvailableList)
     filterStore.setAvailableTags(newAvailableList);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStore.tags]);
+  }, [filterStore.tags, filterStore.allTags]);
 
 
   return (
