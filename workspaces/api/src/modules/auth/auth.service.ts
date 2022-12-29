@@ -76,12 +76,13 @@ export class AuthService {
 
     const payload = {
       id: developer.id,
-      email: developer.email,
       role: AuthRolesEnum.DEVELOPER,
-      githubUsername: developer.githubUsername,
-      avatarURL: developer.avatarURL,
     };
 
     return await this.jwtService.signAsync(payload);
+  }
+
+  async getUserInfo(developerId: string) {
+    return await this.developerService.getDeveloperById(developerId);
   }
 }

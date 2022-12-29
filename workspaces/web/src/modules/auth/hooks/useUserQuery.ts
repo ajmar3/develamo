@@ -5,7 +5,11 @@ export const useUserQuery = () => {
   return useQuery({
     queryKey: ["verify-user"],
     queryFn: () => {
-      return axios.get(process.env.NEXT_PUBLIC_SERVER_URL + "/auth/me", { withCredentials: true }).then(res => res.data);
-    }
+      return axios
+        .get(process.env.NEXT_PUBLIC_SERVER_URL + "/auth/me", {
+          withCredentials: true,
+        })
+        .then((res) => res.data);
+    },
   });
 };

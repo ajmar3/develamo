@@ -3,7 +3,7 @@ interface IDashNavBar {
 }
 
 
-export const DashNavBar:React.FC<IDashNavBar> = (props) => {
+export const NavBar:React.FC<IDashNavBar> = (props) => {
   return (
     <div className="w-full h-full">
       <div className="h-full navbar bg-base-100 border-b border-base-300 flex justify-center items-center">

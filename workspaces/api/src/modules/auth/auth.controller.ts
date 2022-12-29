@@ -26,6 +26,6 @@ export class AuthController {
 
   @Get("me")
   async getUserInfo(@Req() request: IValidatedRequest) {
-    return request.user;
+    return await this.authService.getUserInfo(request.user.id);
   }
 }
