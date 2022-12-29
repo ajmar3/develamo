@@ -4,7 +4,7 @@ import { useProjectFilterStore } from "../stores/filter.store";
 
 export const useGetAllTagsQuery = () => {
 
-  const setAvailableTags = useProjectFilterStore(state => state.setAvailableTags);
+  const setAllTags = useProjectFilterStore(state => state.setAllTags);
 
   return useQuery({
     queryKey: ["get-all-tags"],
@@ -12,7 +12,7 @@ export const useGetAllTagsQuery = () => {
       return axios.get(process.env.NEXT_PUBLIC_SERVER_URL + "/project/tags/all", { withCredentials: true })
         .then(res => res.data)
         .then(data => {
-          setAvailableTags(data);
+          setAllTags(data);
           return data;
         });
     }
