@@ -12,7 +12,6 @@ export const FindProject = () => {
   return (
     <div className="w-full h-full overflow-y-scroll flex flex-col gap-4">
       <FindProjectFilters />
-      <div className="w-full flex-auto bg-base-300"></div>
     </div>
   );
 };
