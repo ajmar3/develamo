@@ -8,7 +8,6 @@ import { ConnectionModule } from "../connection/connection.module";
 import { DatabaseModule } from "../database/database.module";
 import { DeveloperModule } from "../developer/developer.module";
 import { ProjectModule } from "../project/project.module";
-import { SeederService } from "./app.seeder";
 
 @Module({
   imports: [
@@ -23,7 +22,6 @@ import { SeederService } from "./app.seeder";
   ],
   controllers: [],
   providers: [
-    SeederService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

@@ -7,7 +7,7 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { lastValueFrom } from "rxjs";
 import { DeveloperService } from "../developer/developer.service";
-import { AdminTokenGenerateDto } from "./auth.dtos";
+import { AdminLoginDto, AdminTokenGenerateDto } from "./auth.dtos";
 import { AuthRolesEnum } from "./auth.enums";
 
 @Injectable()
@@ -101,6 +101,24 @@ export class AuthService {
     return await this.jwtService.signAsync({
       id: developer.id,
       role: AuthRolesEnum.DEVELOPER,
+    });
+  }
+
+  async adminLogin(model: AdminLoginDto) {
+    if (
+      model.email != process.env.ADMIN_EMAIL ||
+      model.password != process.env.ADMIN_PASSWORD
+    ) {
+      throw new UnauthorizedException("Admin email or password is wrong");
+    }
+
+    const adminUser = await this.developerService.getDeveloperByEmail(
+      model.email
+    );
+
+    return await this.jwtService.signAsync({
+      id: adminUser.id,
+      role: AuthRolesEnum.ADMIN,
     });
   }
 }

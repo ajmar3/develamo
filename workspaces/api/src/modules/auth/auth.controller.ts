@@ -13,7 +13,7 @@ import { Response } from "express";
 import { Public } from "./auth.decorators";
 import { IValidatedRequest } from "./auth.interfaces";
 import { AuthRolesEnum } from "./auth.enums";
-import { AdminTokenGenerateDto } from "./auth.dtos";
+import { AdminLoginDto, AdminTokenGenerateDto } from "./auth.dtos";
 
 @Controller("auth")
 export class AuthController {
@@ -48,5 +48,10 @@ export class AuthController {
       throw new UnauthorizedException("Only admins can access this command");
 
     return await this.authService.adminGenerateToken(model);
+  }
+
+  @Post("admin-login")
+  async adminLogin(@Body() model: AdminLoginDto) {
+    return await this.authService.adminLogin(model);
   }
 }
