@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { lastValueFrom } from "rxjs";
+import { ConnectionService } from "../connection/connection.service";
 import { DeveloperService } from "../developer/developer.service";
 import { AdminLoginDto, AdminTokenGenerateDto } from "./auth.dtos";
 import { AuthRolesEnum } from "./auth.enums";
@@ -15,6 +16,7 @@ export class AuthService {
   constructor(
     private httpService: HttpService,
     private developerService: DeveloperService,
+    private conService: ConnectionService,
     private jwtService: JwtService
   ) {}
 
@@ -71,9 +73,10 @@ export class AuthService {
       model.email
     );
 
-    if (!developer)
+    if (!developer) {
       developer = await this.developerService.createDeveloper(model);
-    else
+      await this.conService.createConnectionList(developer.id);
+    } else
       developer = await this.developerService.updateDeveloperOnSignIn(
         model,
         developer.id
