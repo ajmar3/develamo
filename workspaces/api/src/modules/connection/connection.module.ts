@@ -7,5 +7,6 @@ import { DatabaseModule } from "../database/database.module";
   imports: [DatabaseModule],
   providers: [ConnectionService],
   controllers: [ConnectionController],
+  exports: [ConnectionService],
 })
 export class ConnectionModule {}

@@ -132,4 +132,14 @@ export class ConnectionService {
 
     return updatedRequest;
   }
+
+  async createConnectionList(developerId: string) {
+    const newConnectionList = await this.prismaServie.connectionList.create({
+      data: {
+        developerId: developerId,
+      },
+    });
+
+    return newConnectionList;
+  }
 }

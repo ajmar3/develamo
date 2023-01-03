@@ -1,7 +1,7 @@
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
 import { useGetConnections } from "../hooks/useGetConnectionsQuery";
 
-export const DashSocial: React.FC = () => {
+export const DashConnections: React.FC = () => {
   
   const connectionsQuery = useGetConnections();
 
@@ -10,6 +10,8 @@ export const DashSocial: React.FC = () => {
       <LoadingSpinner size="small" />
     </div>
   );
+
+  console.log(connectionsQuery.data);
 
   return (
     <div className="w-full p-4 bg-base-300 rounded-box">

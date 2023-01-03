@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { seedAdmin } from "./seed.admin";
+import { seedConnectionLists } from "./seed.connectionLists";
 import { seedDevelopers } from "./seed.developers";
 import { SEEDHISTORYREGISTER } from "./seed.historyRegister";
 import { isInSeedHistory } from "./seed.isInSeedHistory";
@@ -14,6 +15,10 @@ async function seed() {
     await seedAdmin(prisma);
   if (!(await isInSeedHistory(prisma, SEEDHISTORYREGISTER.SEED_TAGS)))
     await seedTags(prisma);
+  if (
+    !(await isInSeedHistory(prisma, SEEDHISTORYREGISTER.SEED_CONNECTION_LISTS))
+  )
+    await seedConnectionLists(prisma);
 }
 
 seed()
