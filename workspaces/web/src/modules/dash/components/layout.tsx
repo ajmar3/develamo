@@ -4,6 +4,7 @@ import { DashSideMenu } from "./side-menu";
 import { FindProject } from "./find-project";
 import { DashProfileTabEnum, useDashNavStore } from "../stores/nav-store";
 import { DashMyProfile } from "./my-profile";
+import { DashSocial } from "./social";
 
 export const DashLayout = () => {
   const isMobile = useMediaQuery({
@@ -51,7 +52,9 @@ export const DashLayout = () => {
             </button>
           </div>
           {navStore.selectedProfileTab == DashProfileTabEnum.SOCIAL ? (
-            <div className="w-full mt-5"></div>
+            <div className="w-full mt-5">
+              <DashSocial />
+            </div>  
           ) : (
             <div className="w-full mt-5">
               <DashMyProfile />

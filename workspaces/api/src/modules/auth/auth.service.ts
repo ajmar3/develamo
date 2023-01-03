@@ -1,8 +1,13 @@
 import { HttpService } from "@nestjs/axios";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { lastValueFrom } from "rxjs";
 import { DeveloperService } from "../developer/developer.service";
+import { AdminTokenGenerateDto } from "./auth.dtos";
 import { AuthRolesEnum } from "./auth.enums";
 
 @Injectable()
@@ -84,5 +89,18 @@ export class AuthService {
 
   async getUserInfo(developerId: string) {
     return await this.developerService.getDeveloperById(developerId);
+  }
+
+  async adminGenerateToken(model: AdminTokenGenerateDto) {
+    const developer = await this.developerService.getDeveloperByEmail(
+      model.userEmail
+    );
+
+    if (!developer) throw new BadRequestException("Could not find that user");
+
+    return await this.jwtService.signAsync({
+      id: developer.id,
+      role: AuthRolesEnum.DEVELOPER,
+    });
   }
 }

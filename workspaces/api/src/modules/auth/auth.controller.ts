@@ -1,9 +1,19 @@
 import { HttpService } from "@nestjs/axios";
-import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Response } from "express";
 import { Public } from "./auth.decorators";
 import { IValidatedRequest } from "./auth.interfaces";
+import { AuthRolesEnum } from "./auth.enums";
+import { AdminTokenGenerateDto } from "./auth.dtos";
 
 @Controller("auth")
 export class AuthController {
@@ -27,5 +37,16 @@ export class AuthController {
   @Get("me")
   async getUserInfo(@Req() request: IValidatedRequest) {
     return await this.authService.getUserInfo(request.user.id);
+  }
+
+  @Post("admin-generate-token")
+  async generateTokenForUser(
+    @Body() model: AdminTokenGenerateDto,
+    @Req() request: IValidatedRequest
+  ) {
+    if ((request.user.role as any) != AuthRolesEnum.ADMIN)
+      throw new UnauthorizedException("Only admins can access this command");
+
+    return await this.authService.adminGenerateToken(model);
   }
 }

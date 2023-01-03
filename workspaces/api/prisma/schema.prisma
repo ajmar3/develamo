@@ -28,10 +28,40 @@ model Developer {
   name  String?
   avatarURL String
   createdAt DateTime  @default(now())
+  connectionList  ConnectionList? @relation(name: "listOwner")
+  belongsToConnections Connection[]
+  connectionRequests  ConnectionRequest[] 
 }
 
 model Tag {
   id  String  @id @default(uuid())
   title String
   createdAt DateTime  @default(now())
+}
+
+model Connection {
+  id  String  @id @default(uuid())
+  developer  Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  developerId  String @unique 
+  createdAt DateTime  @default(now())
+  connectionList ConnectionList @relation(fields: [connectListId], references: [id], onDelete: Cascade)
+  connectListId  String @unique
+}
+
+model ConnectionRequest {
+  id  String  @id @default(uuid())
+  requesterId  String @unique
+  requested Developer @relation(fields: [requestedId], references: [id], onDelete: Cascade)
+  requestedId  String @unique
+  createdAt DateTime  @default(now())
+  resolved  Boolean @default(false)
+  resolvedAt DateTime?
+  successful  Boolean @default(false)
+}
+
+model ConnectionList {
+  id  String  @id @default(uuid())
+  developer  Developer @relation(fields: [developerId], references: [id], name: "listOwner", onDelete: Cascade)
+  developerId  String @unique
+  connections Connection[]
 }
