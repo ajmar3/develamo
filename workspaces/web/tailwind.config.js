@@ -8,21 +8,19 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        "normal": ["Open Sans", "sans-serif"],
-        "header": ["Ubuntu", "sans-serif"]
+        normal: ["Open Sans", "sans-serif"],
+        header: ["Ubuntu", "sans-serif"],
       },
       maxWidth: {
-        "8xl": "1920px"
+        "8xl": "1920px",
       },
       minWidth: {
-        "96": "384px"
+        96: "384px",
       },
     },
   },
-  plugins: [
-    require("daisyui")
-  ],
+  plugins: [require("daisyui")],
   daisyui: {
-    themes: ["halloween"]
-  }
+    themes: ["business"],
+  },
 };
