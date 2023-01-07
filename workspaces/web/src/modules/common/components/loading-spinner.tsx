@@ -1,6 +1,7 @@
-export const LoadingSpinner: React.FC<{size: "small" | "medium" | "large"}> = (props) => {
+export const LoadingSpinner: React.FC<{size: "xs" | "small" | "medium" | "large"}> = (props) => {
   
   const getDimensions = () => {
+    if (props.size == "xs") return "w-6 h-6";
     if (props.size == "small") return "w-12 h-12";
     if (props.size == "medium") return "w-32 h-32";
     if (props.size == "large") return "w-72 h-72";

@@ -7,14 +7,14 @@ import { DashUpdateProfileModal } from "./update-profile-modal";
 export const DashMyProfile: React.FC = () => {
   const userInfo = useDevAuthStore((state) => state.devInfo);
   return (
-    <div className="w-full p-4 bg-base-300 rounded-box">
+    <div className="w-full p-4">
       <div className="w-full flex flex-col items-center gap-1">
         <Image
           width={100}
           height={100}
           src={userInfo?.avatarURL as string}
           alt="User Profile Picture"
-          className="rounded-full p-1 border border-base-content"
+          className="rounded-full p-1 border border-secondary"
         />
         <div className="text-lg font-semibold">{userInfo?.name}</div>
         <a

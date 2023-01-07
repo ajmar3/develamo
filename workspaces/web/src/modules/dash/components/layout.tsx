@@ -4,7 +4,8 @@ import { DashSideMenu } from "./side-menu";
 import { FindProject } from "./find-project";
 import { DashProfileTabEnum, useDashNavStore } from "../stores/nav-store";
 import { DashMyProfile } from "./my-profile";
-import { DashSocial } from "./social";
+import { DashConnections } from "./connections";
+import { DashPeople } from "./people";
 
 export const DashLayout = () => {
   const isMobile = useMediaQuery({
@@ -17,8 +18,21 @@ export const DashLayout = () => {
   }));
 
   return (
-    <div className="w-screen h-screen flex flex-col">
-      <div className="w-full">
+    <div className="w-screen h-screen flex justify-center bg-base-300">
+      <div className="max-w-8xl w-full flex p-3 gap-4">
+        <div className="w-1/5 h-full relative overflow-y-scroll bg-base-200 shadow-lg">
+          <DashPeople />
+        </div>
+        <div className="w-1/2 h-full bg-base-200 shadow-lg"></div>
+        <div className="w-3/10 h-fit bg-base-200 shadow-lg">
+          <DashMyProfile />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+      {/* <div className="w-full">
         <NavBar isMobile={isMobile} />
       </div>
       <div className="w-full flex flex-auto p-3 gap-2">
@@ -32,11 +46,11 @@ export const DashLayout = () => {
           <div className="tabs text-lg">
             <button
               className={
-                navStore.selectedProfileTab == DashProfileTabEnum.SOCIAL
+                navStore.selectedProfileTab == DashProfileTabEnum.CONNECTIONS
                   ? "tab tab-bordered tab-active"
                   : "tab tab-bordered"
               }
-              onClick={() => navStore.setSelectedProfileTab(DashProfileTabEnum.SOCIAL)}
+              onClick={() => navStore.setSelectedProfileTab(DashProfileTabEnum.CONNECTIONS)}
             >
               Social
             </button>
@@ -51,9 +65,9 @@ export const DashLayout = () => {
               My Profile
             </button>
           </div>
-          {navStore.selectedProfileTab == DashProfileTabEnum.SOCIAL ? (
+          {navStore.selectedProfileTab == DashProfileTabEnum.CONNECTIONS ? (
             <div className="w-full mt-5">
-              <DashSocial />
+              <DashConnections />
             </div>  
           ) : (
             <div className="w-full mt-5">
@@ -61,7 +75,4 @@ export const DashLayout = () => {
             </div>
           )}
         </div>
-      </div>
-    </div>
-  );
-};
+      </div> */}

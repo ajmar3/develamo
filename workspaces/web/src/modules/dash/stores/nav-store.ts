@@ -6,7 +6,7 @@ export enum DashTabEnum {
 }
 
 export enum DashProfileTabEnum {
-  SOCIAL = 1,
+  CONNECTIONS = 1,
   MY_PROFILE = 2,
 }
 
@@ -20,6 +20,6 @@ export interface IDashNavStore {
 export const useDashNavStore = create<IDashNavStore>(set => ({
   selectedTab: DashTabEnum.FIND,
   setSelectedTab: (newTab: DashTabEnum) => set(state => ({ selectedTab: newTab })),
-  selectedProfileTab: DashProfileTabEnum.SOCIAL,
+  selectedProfileTab: DashProfileTabEnum.CONNECTIONS,
   setSelectedProfileTab: (newTab: DashProfileTabEnum) => set(state => ({ selectedProfileTab: newTab }))
 }));

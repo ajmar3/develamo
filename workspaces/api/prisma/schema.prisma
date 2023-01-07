@@ -50,9 +50,9 @@ model Connection {
 
 model ConnectionRequest {
   id  String  @id @default(uuid())
-  requesterId  String @unique
+  requesterId  String
   requested Developer @relation(fields: [requestedId], references: [id], onDelete: Cascade)
-  requestedId  String @unique
+  requestedId  String
   createdAt DateTime  @default(now())
   resolved  Boolean @default(false)
   resolvedAt DateTime?

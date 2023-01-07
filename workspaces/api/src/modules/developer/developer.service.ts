@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service";
+import { SearchDeveloperDto } from "./developer.dtos";
 
 @Injectable()
 export class DeveloperService {
@@ -66,5 +67,40 @@ export class DeveloperService {
     });
 
     return updatedDeveloper;
+  }
+
+  async searchDeveloper(model: SearchDeveloperDto, developerId: string) {
+    return await this.prismaService.developer.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: model.input,
+              mode: "insensitive",
+            },
+          },
+          {
+            githubUsername: {
+              contains: model.input,
+              mode: "insensitive",
+            },
+          },
+        ],
+        AND: [
+          {
+            id: {
+              not: developerId,
+            },
+          },
+        ],
+      },
+      take: 5,
+      select: {
+        id: true,
+        name: true,
+        githubUsername: true,
+        avatarURL: true,
+      },
+    });
   }
 }

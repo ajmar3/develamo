@@ -15,9 +15,22 @@ export class ConnectionService {
         id: developerId,
       },
       select: {
+        id: true,
         connectionList: {
-          include: {
-            connections: true,
+          select: {
+            connections: {
+              select: {
+                id: true,
+                developer: {
+                  select: {
+                    avatarURL: true,
+                    id: true,
+                    name: true,
+                    githubUsername: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -26,14 +39,54 @@ export class ConnectionService {
     const connectionRequests =
       await this.prismaServie.connectionRequest.findMany({
         where: {
-          requestedId: developerId,
-          resolved: false,
+          AND: [
+            {
+              requestedId: developerId,
+            },
+            {
+              resolved: false,
+            },
+          ],
         },
       });
 
+    if (connectionRequests.length > 0) {
+      const requesterInfo = await this.prismaServie.developer.findMany({
+        where: {
+          id: {
+            in: connectionRequests.map((x) => x.requesterId),
+          },
+        },
+      });
+
+      connectionRequests.forEach((request) => {
+        const matchingInfo = requesterInfo.find(
+          (x) => x.id == request.requesterId
+        );
+
+        request["requesterName"] = matchingInfo.name;
+        request["requesterGithubUsername"] = matchingInfo.githubUsername;
+        request["requesterAvatarURL"] = matchingInfo.avatarURL;
+      });
+    }
+
+    const sentRequests = await this.prismaServie.connectionRequest.findMany({
+      where: {
+        AND: [
+          {
+            requesterId: developerId,
+          },
+          {
+            resolved: false,
+          },
+        ],
+      },
+    });
+
     return {
-      connections: connections.connectionList,
+      connections: connections.connectionList.connections,
       requests: connectionRequests,
+      sentRequests: sentRequests,
     };
   }
 
@@ -57,6 +110,25 @@ export class ConnectionService {
 
     if (connectionExists)
       throw new BadRequestException("Connection already exists.");
+
+    const requestExists = await this.prismaServie.connectionRequest.findFirst({
+      where: {
+        AND: [
+          {
+            requestedId: model.requestedId,
+          },
+          {
+            requesterId: developerId,
+          },
+          {
+            resolved: false,
+          },
+        ],
+      },
+    });
+
+    if (requestExists)
+      throw new BadRequestException("Connection request already exists.");
 
     const newConnectionRequest =
       await this.prismaServie.connectionRequest.create({
@@ -87,23 +159,32 @@ export class ConnectionService {
     if (!updatedRequest)
       throw new BadRequestException("Could not find that request");
 
-    const connectionList = await this.prismaServie.connectionList.findFirst({
+    const connectionList = await this.prismaServie.connectionList.findMany({
       where: {
-        developerId: updatedRequest.requesterId,
+        developerId: {
+          in: [updatedRequest.requesterId, updatedRequest.requestedId],
+        },
       },
       select: {
         id: true,
+        developerId: true,
       },
     });
 
-    const newConnection = await this.prismaServie.connection.create({
-      data: {
-        developerId: developerId,
-        connectListId: connectionList.id,
-      },
+    await this.prismaServie.connection.createMany({
+      data: [
+        {
+          developerId: connectionList[1].developerId,
+          connectListId: connectionList[0].id,
+        },
+        {
+          developerId: connectionList[0].developerId,
+          connectListId: connectionList[1].id,
+        },
+      ],
     });
 
-    return newConnection;
+    return;
   }
 
   async rejectConnectionRequest(

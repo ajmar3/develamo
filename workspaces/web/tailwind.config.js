@@ -17,10 +17,13 @@ module.exports = {
       minWidth: {
         96: "384px",
       },
+      spacing: {
+        "3/10": "30%"
+      }
     },
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: ["business"],
+    themes: ["dark"],
   },
 };
