@@ -2,24 +2,17 @@ import create from "zustand";
 
 export enum DashTabEnum {
   FIND = 1,
-  MY_PROJECTS = 2
-}
-
-export enum DashProfileTabEnum {
-  CONNECTIONS = 1,
-  MY_PROFILE = 2,
+  MY_PROJECTS = 2,
+  PROFILE = 3,
+  CHAT = 4,
 }
 
 export interface IDashNavStore {
-  selectedTab: DashTabEnum;
-  setSelectedTab: (newTab: DashTabEnum) => void;
-  selectedProfileTab: DashProfileTabEnum;
-  setSelectedProfileTab: (newTab: DashProfileTabEnum) => void;
+  activeTab: DashTabEnum;
+  setActiveTab: (newTab: DashTabEnum) => void;
 }
 
 export const useDashNavStore = create<IDashNavStore>(set => ({
-  selectedTab: DashTabEnum.FIND,
-  setSelectedTab: (newTab: DashTabEnum) => set(state => ({ selectedTab: newTab })),
-  selectedProfileTab: DashProfileTabEnum.CONNECTIONS,
-  setSelectedProfileTab: (newTab: DashProfileTabEnum) => set(state => ({ selectedProfileTab: newTab }))
+  activeTab: DashTabEnum.FIND,
+  setActiveTab: (newTab: DashTabEnum) => set(state => ({ activeTab: newTab })),
 }));

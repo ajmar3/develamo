@@ -8,8 +8,8 @@ import { useRejectConnectionMutation } from "../hooks/useRejectConnectionMutatio
 import { useRequestConnectionMutation } from "../hooks/useRequestConnectionMutation";
 import {
   SearchDeveloperResultsType,
-  useSearchDevelopersMutation,
-} from "../hooks/useSearchDevelopersMutation";
+  useSearchMutation,
+} from "../hooks/useSearchMutation";
 
 export const DashConnections: React.FC = () => {
   const connectionsQuery = useGetConnections(true);

@@ -70,7 +70,7 @@ export class DeveloperService {
   }
 
   async searchDeveloper(model: SearchDeveloperDto, developerId: string) {
-    return await this.prismaService.developer.findMany({
+    const developers = await this.prismaService.developer.findMany({
       where: {
         OR: [
           {
@@ -102,5 +102,6 @@ export class DeveloperService {
         avatarURL: true,
       },
     });
+    return { developers, projects: [] };
   }
 }

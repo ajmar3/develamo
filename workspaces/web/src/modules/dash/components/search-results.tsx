@@ -12,13 +12,17 @@ import {
 } from "../hooks/useSearchMutation";
 import { useConnectionStore } from "../stores/connections.store";
 
-export const DashPeopleSearchResults: React.FC<{
+export const DashSearchResults: React.FC<{
   search: string;
 }> = (props) => {
-  const [searchResults, setSearchResults] =
-    useState<SearchResultsType>({ developers: [], projects: [] });
+  const [searchResults, setSearchResults] = useState<SearchResultsType>({
+    developers: [],
+    projects: [],
+  });
 
-  const searchDevMutation = useSearchMutation();
+  const [resultsTab, setResultsTab] = useState<number>(1);
+
+  const searchMutation = useSearchMutation();
 
   const connections = useConnectionStore((state) => state.connections);
   const requests = useConnectionStore((state) => state.connectionRequests);
@@ -26,46 +30,78 @@ export const DashPeopleSearchResults: React.FC<{
 
   useEffect(() => {
     if (props.search) {
-      searchDevMutation.mutate({ input: props.search });
+      searchMutation.mutate({ input: props.search });
     } else {
       setSearchResults({ developers: [], projects: [] });
     }
   }, [props.search]);
 
   useEffect(() => {
-    if (searchDevMutation.data) {
-      setSearchResults(searchDevMutation.data);
-    } else if (searchDevMutation.isSuccess) {
+    if (searchMutation.data) {
+      setSearchResults(searchMutation.data);
+    } else if (searchMutation.isSuccess) {
       setSearchResults({ developers: [], projects: [] });
     }
-  }, [searchDevMutation.isSuccess, connections, requests, sentRequests]);
+  }, [searchMutation.isSuccess, connections, requests, sentRequests]);
 
-  if (searchDevMutation.isLoading)
+  if (searchMutation.isLoading)
     return (
       <div className="w-full mt-20 flex justify-center items-center">
         <LoadingSpinner size="small" />
       </div>
     );
 
+  if (resultsTab == 1)
+    return (
+      <div className="w-full flex flex-col gap-3 h-full">
+        <div className="w-full flex justify-center">
+          <div className="tabs">
+            <a
+              className="tab tab-bordered tab-active"
+              onClick={() => setResultsTab(1)}
+            >
+              Projects
+            </a>
+            <a className="tab tab-bordered" onClick={() => setResultsTab(2)}>
+              Developers
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+
   return (
-    <div className="w-full flex flex-col gap-3 h-full overflow-y-scroll">
+    <div className="w-full flex flex-col gap-3 h-full z-10">
+      <div className="w-full flex justify-center">
+        <div className="tabs">
+          <a className="tab tab-bordered" onClick={() => setResultsTab(1)}>
+            Projects
+          </a>
+          <a
+            className="tab tab-bordered tab-active"
+            onClick={() => setResultsTab(2)}
+          >
+            Developers
+          </a>
+        </div>
+      </div>
       {searchResults.developers.length > 0 ? (
         searchResults.developers.map((result) => (
           <div
-            className="w-full flex py-2 items-center hover:bg-base-100"
+            className="w-full flex py-2 px-3 items-center justify-between hover:bg-base-100"
             key={result.id}
           >
-            <Image
-              src={result.avatarURL}
-              alt="profile picture"
-              width={45}
-              height={45}
-              className="rounded-full p-1 border border-base-content"
-            />
-            <div className="ml-2">
+            <div className="ml-2 flex gap-3 items-center">
+              <Image
+                src={result.avatarURL}
+                alt="profile picture"
+                width={60}
+                height={60}
+                className="rounded-full p-1 border border-base-content"
+              />
               <div>{result.name ? result.name : result.githubUsername}</div>
-              <PeopleActionButton developerId={result.id} />
             </div>
+            <PeopleActionButton developerId={result.id} />
           </div>
         ))
       ) : (
@@ -90,26 +126,22 @@ const PeopleActionButton: React.FC<{
   if (connections.find((x) => x.developer.id == props.developerId))
     return <button className="btn btn-xs btn-primary">Chat</button>;
   else if (requests.find((x) => x.requesterId == props.developerId)) {
-    const request = requests.find(x => x.requesterId == props.developerId);
+    const request = requests.find((x) => x.requesterId == props.developerId);
     return (
       <div className="flex gap-2">
-      <button
-        className="btn btn-sm btn-outline btn-accent"
-        onClick={() =>
-          acceptConMutation.mutate({ requestId: request.id })
-        }
-      >
-        <CheckIcon className="w-4 h-4" />
-      </button>
-      <button
-        className="btn btn-sm btn-outline"
-        onClick={() =>
-          rejectMutation.mutate({ requestId: request.id })
-        }
-      >
-        <XMarkIcon className="w-4 h-4" />
-      </button>
-    </div>
+        <button
+          className="btn btn-sm btn-outline btn-accent"
+          onClick={() => acceptConMutation.mutate({ requestId: request.id })}
+        >
+          <CheckIcon className="w-4 h-4" />
+        </button>
+        <button
+          className="btn btn-sm btn-outline"
+          onClick={() => rejectMutation.mutate({ requestId: request.id })}
+        >
+          <XMarkIcon className="w-4 h-4" />
+        </button>
+      </div>
     );
   } else if (sentRequests.find((x) => x.requestedId == props.developerId))
     return (

@@ -8,6 +8,7 @@ import { ConnectionModule } from "../connection/connection.module";
 import { DatabaseModule } from "../database/database.module";
 import { DeveloperModule } from "../developer/developer.module";
 import { ProjectModule } from "../project/project.module";
+import { SearchModule } from "../search/search.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ProjectModule } from "../project/project.module";
     DeveloperModule,
     ProjectModule,
     ConnectionModule,
+    SearchModule,
   ],
   controllers: [],
   providers: [
