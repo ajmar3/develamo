@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useProjectFilterStore } from "../stores/filter.store";
+import { useCreateProjectStore } from "../stores/create-project.store";
 
 export const useGetAllTagsQuery = () => {
 
-  const setAllTags = useProjectFilterStore(state => state.setAllTags);
+  const setAllTags = useCreateProjectStore(state => state.setAllTags);
 
   return useQuery({
     queryKey: ["get-all-tags"],

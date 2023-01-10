@@ -1,7 +1,7 @@
 import { faTags } from "@fortawesome/free-solid-svg-icons";
 import create from "zustand";
 
-export interface IProjectFilterStore {
+export interface ICreateProjectStore {
   tags: string[];
   addTag: (newTag: string) => void;
   removeTag: (removeTag: string) => void;
@@ -13,7 +13,7 @@ export interface IProjectFilterStore {
   setSelectedTagInfo: (tags: { id: string, title: string }[]) => void;
 }
 
-export const useProjectFilterStore = create<IProjectFilterStore>(set => ({
+export const useCreateProjectStore = create<ICreateProjectStore>(set => ({
   tags: [],
   addTag: (newTag: string) => set(state => ({ tags: [...state.tags, newTag] })),
   removeTag: (removeTag: string) => {

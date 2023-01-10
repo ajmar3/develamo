@@ -3,8 +3,6 @@ import create from "zustand";
 export enum DashTabEnum {
   FIND = 1,
   MY_PROJECTS = 2,
-  PROFILE = 3,
-  CHAT = 4,
 }
 
 export interface IDashNavStore {

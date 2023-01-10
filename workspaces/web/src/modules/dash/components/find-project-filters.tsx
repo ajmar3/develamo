@@ -2,10 +2,10 @@ import { Combobox, Menu } from "@headlessui/react";
 import { FunnelIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { SearchBox } from "modules/common/components/search-box";
 import { useEffect, useState } from "react";
-import { useProjectFilterStore } from "../stores/filter.store";
+import { useCreateProjectStore } from "../stores/create-project.store";
 
 export const FindProjectFilters = () => {
-  const filterStore = useProjectFilterStore((state) => ({
+  const filterStore = useCreateProjectStore((state) => ({
     availableTags: state.availableTags,
     selectedTagInfo: state.selectedTagInfo,
     setSelectedTagInfo: state.setSelectedTagInfo,

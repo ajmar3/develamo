@@ -30,13 +30,17 @@ model Developer {
   createdAt DateTime  @default(now())
   connectionList  ConnectionList? @relation(name: "listOwner")
   belongsToConnections Connection[]
-  connectionRequests  ConnectionRequest[] 
+  connectionRequests  ConnectionRequest[]
+  projects  Project[] @relation(name: "projects")
+  ownedProjects Project[] @relation(name: "ownedProjects")
+  projectLikes  ProjectLike[]
 }
 
 model Tag {
   id  String  @id @default(uuid())
   title String
   createdAt DateTime  @default(now())
+  projects  Project[]
 }
 
 model Connection {
@@ -64,4 +68,27 @@ model ConnectionList {
   developer  Developer @relation(fields: [developerId], references: [id], name: "listOwner", onDelete: Cascade)
   developerId  String @unique
   connections Connection[]
+}
+
+model Project {
+  id  String  @id @default(uuid())
+  developers  Developer[] @relation(name: "projects")
+  owner  Developer @relation(fields: [ownerId], references: [id], name: "ownedProjects", onDelete: Cascade)
+  ownerId String
+  createdAt DateTime  @default(now())
+  finished  Boolean @default(false)
+  finishedAt DateTime?
+  title  String
+  description String
+  tags  Tag[]
+  likes ProjectLike[]
+}
+
+model ProjectLike {
+  id  String  @id @default(uuid())
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  developerId String
+  createdAt DateTime  @default(now())
 }
