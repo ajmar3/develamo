@@ -12,7 +12,7 @@ export const DashMain: React.FC = () => {
 
   return (
     <div className="w-full h-full">
-      <div className="w-full p-3 sticky top-0 bg-base-200 z-20 flex gap-5">
+      <div className="w-full p-3 bg-base-200 z-20 flex gap-5 rounded-sm mb-2">
         <input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}

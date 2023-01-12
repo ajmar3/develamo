@@ -1,5 +1,6 @@
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
+import { useActionSocketStore } from "modules/sockets/actions.store";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAcceptConnectionMutation } from "../hooks/useAcceptConnectionMutation";
@@ -11,6 +12,7 @@ import {
   useSearchMutation,
 } from "../hooks/useSearchMutation";
 import { useConnectionStore } from "../stores/connections.store";
+import { DashProjectCard } from "./project-card";
 
 export const DashSearchResults: React.FC<{
   search: string;
@@ -37,6 +39,7 @@ export const DashSearchResults: React.FC<{
   }, [props.search]);
 
   useEffect(() => {
+    console.log("bing", requests);
     if (searchMutation.data) {
       setSearchResults(searchMutation.data);
     } else if (searchMutation.isSuccess) {
@@ -50,6 +53,8 @@ export const DashSearchResults: React.FC<{
         <LoadingSpinner size="small" />
       </div>
     );
+
+  console.log(searchMutation.data);
 
   if (resultsTab == 1)
     return (
@@ -67,6 +72,15 @@ export const DashSearchResults: React.FC<{
             </a>
           </div>
         </div>
+        {searchResults.projects.length > 0 ? (
+          <div className="flex flex-col gap-2 px-3">
+            {searchResults.projects.map((project) => (
+              <DashProjectCard {...project} key={project.id} />
+            ))}
+          </div>
+        ) : (
+          <div className="w-full text-center mt-10">No search results</div>
+        )}
       </div>
     );
 
@@ -105,7 +119,7 @@ export const DashSearchResults: React.FC<{
           </div>
         ))
       ) : (
-        <div className="mt-5 text-center">No results</div>
+        <div className="mt-10 text-center">No search results</div>
       )}
     </div>
   );
@@ -117,13 +131,21 @@ const PeopleActionButton: React.FC<{
   const connections = useConnectionStore((state) => state.connections);
   const requests = useConnectionStore((state) => state.connectionRequests);
   const sentRequests = useConnectionStore((state) => state.sentRequests);
-  const conRequestMutation = useRequestConnectionMutation();
-  const acceptConMutation = useAcceptConnectionMutation();
-  const rejectMutation = useRejectConnectionMutation();
+  const makeConRequest = useActionSocketStore((state) => state.sendConRequest);
+  const acceptConRequest = useActionSocketStore(
+    (state) => state.acceptConRequest
+  );
+  const rejectConRequest = useActionSocketStore(
+    (state) => state.rejectConRequest
+  );
 
   const [loadingState, setLoadingState] = useState(false);
 
-  if (connections.find((x) => x.developer.id == props.developerId))
+  useEffect(() => {
+    setLoadingState(false);
+  }, []);
+
+  if (connections.find((x) => x.developerId == props.developerId))
     return <button className="btn btn-xs btn-primary">Chat</button>;
   else if (requests.find((x) => x.requesterId == props.developerId)) {
     const request = requests.find((x) => x.requesterId == props.developerId);
@@ -131,13 +153,17 @@ const PeopleActionButton: React.FC<{
       <div className="flex gap-2">
         <button
           className="btn btn-sm btn-outline btn-accent"
-          onClick={() => acceptConMutation.mutate({ requestId: request.id })}
+          onClick={() => {
+            acceptConRequest(request.id);
+          }}
         >
           <CheckIcon className="w-4 h-4" />
         </button>
         <button
           className="btn btn-sm btn-outline"
-          onClick={() => rejectMutation.mutate({ requestId: request.id })}
+          onClick={() => {
+            rejectConRequest(request.id);
+          }}
         >
           <XMarkIcon className="w-4 h-4" />
         </button>
@@ -155,7 +181,7 @@ const PeopleActionButton: React.FC<{
       <button
         className="btn btn-xs btn-outline btn-secondary"
         onClick={() => {
-          conRequestMutation.mutate({ requestedId: props.developerId });
+          makeConRequest(props.developerId);
           setLoadingState(true);
         }}
       >

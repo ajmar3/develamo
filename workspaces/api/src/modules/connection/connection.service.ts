@@ -21,6 +21,7 @@ export class ConnectionService {
             connections: {
               select: {
                 id: true,
+                developerId: true,
                 developer: {
                   select: {
                     avatarURL: true,
@@ -184,7 +185,28 @@ export class ConnectionService {
       ],
     });
 
-    return;
+    const newConData = await this.prismaServie.developer.findFirst({
+      where: {
+        id: developerId,
+      },
+      select: {
+        connectionRequests: {
+          where: {
+            resolved: false,
+          },
+        },
+        connectionList: {
+          select: {
+            connections: true,
+          },
+        },
+      },
+    });
+
+    return {
+      connectionRequests: newConData.connectionRequests,
+      connections: newConData.connectionList.connections,
+    };
   }
 
   async rejectConnectionRequest(
@@ -211,7 +233,28 @@ export class ConnectionService {
       },
     });
 
-    return updatedRequest;
+    const newConData = await this.prismaServie.developer.findFirst({
+      where: {
+        id: developerId,
+      },
+      select: {
+        connectionRequests: {
+          where: {
+            resolved: false,
+          },
+        },
+        connectionList: {
+          select: {
+            connections: true,
+          },
+        },
+      },
+    });
+
+    return {
+      connectionRequests: newConData.connectionRequests,
+      connections: newConData.connectionList.connections,
+    };
   }
 
   async createConnectionList(developerId: string) {

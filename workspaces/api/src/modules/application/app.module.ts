@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { CacheModule, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { AuthModule } from "../auth/auth.module";
@@ -9,6 +9,7 @@ import { DatabaseModule } from "../database/database.module";
 import { DeveloperModule } from "../developer/developer.module";
 import { ProjectModule } from "../project/project.module";
 import { SearchModule } from "../search/search.module";
+import { SocketsModule } from "../sockets/sockets.module";
 
 @Module({
   imports: [
@@ -21,6 +22,8 @@ import { SearchModule } from "../search/search.module";
     ProjectModule,
     ConnectionModule,
     SearchModule,
+    SocketsModule,
+    CacheModule.register({ isGlobal: true }),
   ],
   controllers: [],
   providers: [
