@@ -7,8 +7,8 @@ export const DashSocial = () => {
   
   if (resultsTab == 1)
   return (
-    <div className="w-full flex flex-col gap-3 h-full">
-      <div className="w-full flex justify-center">
+    <div className="w-full flex flex-col gap-3 h-full p-2">
+      <div className="w-full flex justify-center mb-2">
         <div className="tabs">
           <a
             className="tab tab-bordered tab-active"
@@ -25,8 +25,8 @@ export const DashSocial = () => {
   );
 
   return (
-    <div className="w-full flex flex-col gap-3 h-full">
-      <div className="w-full flex justify-center">
+    <div className="w-full flex flex-col gap-3 h-full p-2">
+      <div className="w-full flex justify-center mb-2">
         <div className="tabs">
           <a
             className="tab tab-bordered"

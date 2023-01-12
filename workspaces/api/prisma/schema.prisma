@@ -47,10 +47,10 @@ model Tag {
 model Connection {
   id  String  @id @default(uuid())
   developer  Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  developerId  String @unique 
+  developerId  String
   createdAt DateTime  @default(now())
   connectionList ConnectionList @relation(fields: [connectListId], references: [id], onDelete: Cascade)
-  connectListId  String @unique
+  connectListId  String
 }
 
 model ConnectionRequest {
