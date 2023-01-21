@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
+import { Cache } from "cache-manager";
 import { PrismaService } from "../database/prisma.service";
 import {
   CreateConnectionRequestDto,
@@ -7,10 +13,13 @@ import {
 
 @Injectable()
 export class ConnectionService {
-  constructor(private prismaServie: PrismaService) {}
+  constructor(
+    private prismaServie: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
+  ) {}
 
   async getConnectionsForDeveloper(developerId: string) {
-    const connections = await this.prismaServie.developer.findFirst({
+    const developer = await this.prismaServie.developer.findFirst({
       where: {
         id: developerId,
       },
@@ -85,7 +94,7 @@ export class ConnectionService {
     });
 
     return {
-      connections: connections.connectionList.connections,
+      connections: developer.connectionList.connections,
       requests: connectionRequests,
       sentRequests: sentRequests,
     };

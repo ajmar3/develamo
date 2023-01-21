@@ -1,10 +1,16 @@
-import { Injectable, ValidationPipe } from "@nestjs/common";
-import { WsException } from "@nestjs/websockets";
+import {
+  ArgumentsHost,
+  Catch,
+  HttpException,
+  Injectable,
+  ValidationPipe,
+} from "@nestjs/common";
+import { BaseWsExceptionFilter, WsException } from "@nestjs/websockets";
+import { Socket } from "socket.io";
 
 @Injectable()
 export class WSValidationPipe extends ValidationPipe {
   createExceptionFactory() {
-    console.log("hello11111111111");
     return (validationErrors = []) => {
       if (this.isDetailedOutputDisabled) {
         return new WsException("Bad request");
@@ -13,5 +19,21 @@ export class WSValidationPipe extends ValidationPipe {
 
       return new WsException(errors);
     };
+  }
+}
+
+@Catch(WsException, HttpException)
+export class WsExceptionFilter {
+  public catch(exception: HttpException, host: ArgumentsHost) {
+    const client = host.switchToWs().getClient();
+    this.handleError(client, exception);
+  }
+
+  public handleError(client: Socket, exception: HttpException | WsException) {
+    if (exception instanceof HttpException) {
+      // handle http exception
+    } else {
+      // handle websocket exception
+    }
   }
 }

@@ -9,7 +9,7 @@ export interface IProjectStore {
   setMyOwnedProjects: (projects: OwnedProjectType[]) => void;
 }
 
-export const useConnectionStore = create<IProjectStore>(set => ({
+export const useProjectStrore = create<IProjectStore>(set => ({
   myProjects: [],
   setMyProjects: (projects: ProjectType[]) => set(state => ({ myProjects: projects })),
   myOwnedProjects: [],

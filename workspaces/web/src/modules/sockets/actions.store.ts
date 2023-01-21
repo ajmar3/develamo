@@ -24,12 +24,12 @@ export const useActionSocketStore = create<IActionSocketStore>((set) => {
   
   socket.on("connection-update", (data) => {
     connectStore.setConnections(data.connections);
-    console.log("requests", data.connectionRequests);
-    connectStore.setConnectionRequests(data.connectionRequests);
+    connectStore.setConnectionRequests(data.requests);
+    connectStore.setSentRequests(data.sentRequests);
   });
 
   socket.on("new-sent-request", (data) => {
-    connectStore.setSentRequests([...connectStore.sentRequests, data]);
+    connectStore.addSentRequest(data);
   });
 
   return {

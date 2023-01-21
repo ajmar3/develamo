@@ -4,29 +4,22 @@ import {
   UseFilters,
   UseGuards,
   UsePipes,
-  ValidationPipe,
 } from "@nestjs/common";
 import { Cache } from "cache-manager";
 import {
-  BaseWsExceptionFilter,
-  ConnectedSocket,
-  MessageBody,
-  OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { RolesGuard } from "../auth/roles.guard";
 import { WsGuard } from "../auth/ws.guard";
 import {
   CreateConnectionRequestDto,
   RespondConnectionRequestDto,
 } from "../connection/connection.dtos";
 import { ConnectionService } from "../connection/connection.service";
-import { WSValidationPipe } from "./sockets.pipes";
+import { WsExceptionFilter, WSValidationPipe } from "./sockets.pipes";
 import { ConnectWebsocketDto } from "./sockets.dtos";
 import { IValidatedSocket } from "./socket.interfaces";
 
@@ -39,6 +32,7 @@ import { IValidatedSocket } from "./socket.interfaces";
 })
 @UseGuards(WsGuard)
 @UsePipes(new WSValidationPipe())
+@UseFilters(new WsExceptionFilter())
 export class ActionsGateway implements OnGatewayDisconnect {
   constructor(
     private conService: ConnectionService,
@@ -105,6 +99,9 @@ export class ActionsGateway implements OnGatewayDisconnect {
     const connections = await this.conService.getConnectionsForDeveloper(
       client.user.id
     );
+
+    client.emit("connection-update", connections);
+
     await this.cacheManager.set(
       data.developerId,
       client.id,

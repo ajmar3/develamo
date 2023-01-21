@@ -107,11 +107,13 @@ export class SearchService {
             {
               title: {
                 contains: model.input,
+                mode: "insensitive",
               },
             },
             {
               description: {
                 contains: model.input,
+                mode: "insensitive",
               },
             },
           ],

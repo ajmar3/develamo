@@ -30,6 +30,12 @@ export const DashFeed: React.FC = () => {
           >
             My Projects
           </a>
+          <a
+            className="tab tab-bordered"
+            onClick={() => dashNavStore.setActiveTab(DashTabEnum.CHAT)}
+          >
+            Chats
+          </a>
         </div>
       </div>
       <div className="w-full flex flex-col h-full flex-1 justify-center items-center mt-32">
@@ -37,8 +43,6 @@ export const DashFeed: React.FC = () => {
       </div>
     </div>
   );
-
-  console.log(feedResults.data);
 
   return (
     <div className="w-full flex flex-col gap-3 h-full">
@@ -55,6 +59,12 @@ export const DashFeed: React.FC = () => {
             onClick={() => dashNavStore.setActiveTab(DashTabEnum.MY_PROJECTS)}
           >
             My Projects
+          </a>
+          <a
+            className="tab tab-bordered"
+            onClick={() => dashNavStore.setActiveTab(DashTabEnum.CHAT)}
+          >
+            Chats
           </a>
         </div>
       </div>

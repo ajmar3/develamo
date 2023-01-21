@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
+import { DashChatFeed } from "./chat-feed";
 import { CreateProjectModal } from "./create-project-modal";
 import { DashFeed } from "./feed";
 import { DashMyProjects } from "./my-projects";
@@ -10,9 +11,15 @@ export const DashMain: React.FC = () => {
 
   const activeTab = useDashNavStore((state) => state.activeTab);
 
+  const getTabElement = () => {
+    if (activeTab == DashTabEnum.FIND) return <DashFeed />;
+    if (activeTab == DashTabEnum.MY_PROJECTS) return <DashMyProjects />;
+    if (activeTab == DashTabEnum.CHAT) return <DashChatFeed />;
+  };
+
   return (
     <div className="w-full h-full">
-      <div className="w-full p-3 bg-base-200 z-20 flex gap-5 rounded-sm mb-2">
+      <div className="w-full h-20 p-3 bg-base-200 z-20 flex items-center gap-5 rounded-sm mb-2">
         <input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
@@ -28,8 +35,8 @@ export const DashMain: React.FC = () => {
           <DashSearchResults search={searchInput} />
         </div>
       ) : (
-        <div className="w-full">
-          {activeTab == DashTabEnum.FIND ? <DashFeed /> : <DashMyProjects />}
+        <div className="w-full h-[calc(100%-5.5rem)]">
+          {getTabElement()}
         </div>
       )}
       <CreateProjectModal />

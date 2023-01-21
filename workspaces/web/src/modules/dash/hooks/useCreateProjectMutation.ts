@@ -1,7 +1,6 @@
 import { useMutation, UseQueryResult } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
-import { useGetConnections } from "./useGetConnectionsQuery";
 
 export type CreateProjectType = {
   title: string

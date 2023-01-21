@@ -1,6 +1,7 @@
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
 import { useActionSocketStore } from "modules/sockets/actions.store";
+import { useChatSocketStore } from "modules/sockets/chat.store";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAcceptConnectionMutation } from "../hooks/useAcceptConnectionMutation";
@@ -12,6 +13,7 @@ import {
   useSearchMutation,
 } from "../hooks/useSearchMutation";
 import { useConnectionStore } from "../stores/connections.store";
+import { useChatMessageStore } from "../stores/chat-message.store";
 import { DashProjectCard } from "./project-card";
 
 export const DashSearchResults: React.FC<{
@@ -39,7 +41,6 @@ export const DashSearchResults: React.FC<{
   }, [props.search]);
 
   useEffect(() => {
-    console.log("bing", requests);
     if (searchMutation.data) {
       setSearchResults(searchMutation.data);
     } else if (searchMutation.isSuccess) {
@@ -53,8 +54,6 @@ export const DashSearchResults: React.FC<{
         <LoadingSpinner size="small" />
       </div>
     );
-
-  console.log(searchMutation.data);
 
   if (resultsTab == 1)
     return (
@@ -132,6 +131,7 @@ const PeopleActionButton: React.FC<{
   const requests = useConnectionStore((state) => state.connectionRequests);
   const sentRequests = useConnectionStore((state) => state.sentRequests);
   const makeConRequest = useActionSocketStore((state) => state.sendConRequest);
+  const openChatFromDeveloper = useChatSocketStore(state => state.openChatFromDeveloper);
   const acceptConRequest = useActionSocketStore(
     (state) => state.acceptConRequest
   );
@@ -139,14 +139,8 @@ const PeopleActionButton: React.FC<{
     (state) => state.rejectConRequest
   );
 
-  const [loadingState, setLoadingState] = useState(false);
-
-  useEffect(() => {
-    setLoadingState(false);
-  }, []);
-
   if (connections.find((x) => x.developerId == props.developerId))
-    return <button className="btn btn-xs btn-primary">Chat</button>;
+    return <button className="btn btn-xs btn-primary" onClick={() => openChatFromDeveloper(props.developerId)}>Chat</button>;
   else if (requests.find((x) => x.requesterId == props.developerId)) {
     const request = requests.find((x) => x.requesterId == props.developerId);
     return (
@@ -175,14 +169,12 @@ const PeopleActionButton: React.FC<{
         Requested
       </button>
     );
-  else if (loadingState) return <LoadingSpinner size="xs" />;
   else
     return (
       <button
         className="btn btn-xs btn-outline btn-secondary"
         onClick={() => {
           makeConRequest(props.developerId);
-          setLoadingState(true);
         }}
       >
         Connect

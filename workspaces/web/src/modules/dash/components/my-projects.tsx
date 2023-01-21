@@ -15,16 +15,22 @@ export const DashMyProjects: React.FC = () => {
         <div className="w-full flex justify-center">
           <div className="tabs">
             <a
-              className="tab tab-bordered tab-active"
+              className="tab tab-bordered"
               onClick={() => dashNavStore.setActiveTab(DashTabEnum.FIND)}
             >
               Find A Project
             </a>
             <a
-              className="tab tab-bordered"
+              className="tab tab-bordered tab-active"
               onClick={() => dashNavStore.setActiveTab(DashTabEnum.MY_PROJECTS)}
             >
               My Projects
+            </a>
+            <a
+              className="tab tab-bordered"
+              onClick={() => dashNavStore.setActiveTab(DashTabEnum.CHAT)}
+            >
+              Chats
             </a>
           </div>
         </div>
@@ -49,6 +55,12 @@ export const DashMyProjects: React.FC = () => {
             onClick={() => dashNavStore.setActiveTab(DashTabEnum.MY_PROJECTS)}
           >
             My Projects
+          </a>
+          <a
+            className="tab tab-bordered"
+            onClick={() => dashNavStore.setActiveTab(DashTabEnum.CHAT)}
+          >
+            Chats
           </a>
         </div>
       </div>

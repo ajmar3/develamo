@@ -35,6 +35,11 @@ model Developer {
   projects  Project[] @relation(name: "projects")
   ownedProjects Project[] @relation(name: "ownedProjects")
   projectLikes  ProjectLike[]
+  sentDirectMessages  DirectMessage[]
+  directMessageChat DirectMessageChat[]
+  projectChat ProjectChat[]
+  sentProjectMessages  ProjectChatMessage[] @relation(name: "sentProjectMessages")
+  seenProjectMessages  ProjectChatMessage[] @relation(name: "seenProjectMessages")
 }
 
 model Tag {
@@ -83,6 +88,8 @@ model Project {
   description String
   tags  Tag[]
   likes ProjectLike[]
+  chat  ProjectChat?
+  chatId  String?  @unique
 }
 
 model ProjectLike {
@@ -92,4 +99,41 @@ model ProjectLike {
   developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
   developerId String
   createdAt DateTime  @default(now())
+}
+
+model DirectMessageChat {
+  id  String  @id @default(uuid())
+  participants  Developer[]
+  messages DirectMessage[]
+  createdAt DateTime  @default(now())
+}
+
+model DirectMessage {
+  id  String  @id @default(uuid())
+  sender Developer @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sentAt  DateTime  @default(now())
+  chat  DirectMessageChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId String
+  text  String
+  seen  Boolean
+}
+
+model ProjectChat {
+  id  String  @id @default(uuid())
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String  @unique
+  participants  Developer[]
+  messages ProjectChatMessage[]
+}
+
+model ProjectChatMessage {
+  id  String  @id @default(uuid())
+  sender Developer @relation(fields: [senderId], references: [id], onDelete: Cascade, name: "sentProjectMessages")
+  senderId String
+  sentAt  DateTime  @default(now())
+  chat  ProjectChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId String
+  text  String
+  seenBy Developer[] @relation(name: "seenProjectMessages")
 }

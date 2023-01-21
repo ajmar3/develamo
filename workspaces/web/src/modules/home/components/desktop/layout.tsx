@@ -31,10 +31,10 @@ export default function DesktopHomeLayout() {
         <div className="flex flex-col gap-3 max-w-3xl">
           <h1 className="text-4xl font-header font-bold">Develamo</h1>
           <h2 className="text-2xl font-header font-semibold">Find a team for your next learning project!</h2>
-          <p className="text-lg">
+          {/* <p className="text-lg">
             Tell Develamo what technology stack you want to build your next project with and we will handle the rest!
             A better learning experience and the chance to build new connections with other coders is just a few clicks away.
-          </p>
+          </p> */}
           <Link href={process.env.NEXT_PUBLIC_GITHUB_URL || "#"} className="w-full">
             <button
               className={mutation.isLoading ? "btn btn-primary w-full loading" : "btn btn-primary w-full"}
