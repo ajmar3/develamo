@@ -267,6 +267,10 @@ export class ChatService {
         id: {
           in: chat.messages.map((x) => x.id),
         },
+        senderId: {
+          not: developerId,
+        },
+        seen: false,
       },
       data: {
         seen: true,

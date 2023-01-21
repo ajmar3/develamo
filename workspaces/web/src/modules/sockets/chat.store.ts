@@ -1,5 +1,3 @@
-import { useDevAuthStore } from "modules/auth/store/auth-store";
-import { useConnectionStore } from "modules/dash/stores/connections.store";
 import { useChatMessageStore } from "modules/dash/stores/chat-message.store";
 import { io, Socket } from "socket.io-client";
 import create from "zustand";
@@ -15,7 +13,6 @@ export interface IChatSocketStore {
   createDirectMessageChat: (developerIds: string[]) => void;
   createDirectMessage: (data: { chatId: string; text: string }) => void;
   openChat: (chatId: string) => void;
-  openChatFromDeveloper: (chatId: string) => void;
   initSocket: (developerId: string) => void;
 }
 
@@ -76,11 +73,6 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
       chatStore.setChatOpening(true);
       socket.emit("open-chat", {
         chatId: chatId,
-      });
-    },
-    openChatFromDeveloper: (developerid: string) => {
-      socket.emit("open-chat-from-developer", {
-        developerId: developerid,
       });
     },
     initSocket: (developerId: any) => {

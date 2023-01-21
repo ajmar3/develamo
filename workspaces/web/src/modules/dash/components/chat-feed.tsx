@@ -82,8 +82,8 @@ export const DashChatFeed: React.FC = () => {
                   {recentMessage ? (
                     <div
                       className={
-                        recentMessage.seen
-                          ? "text-white text-opacity-50 text-sm whitespace-nowrap w-full overflow-hidden"
+                        recentMessage.seen || recentMessage.sender.id == developerId
+                          ? "text-white text-opacity-50 text-xs whitespace-nowrap w-full overflow-hidden"
                           : "text-white text-xs w-full overflow-hidden"
                       }
                     >

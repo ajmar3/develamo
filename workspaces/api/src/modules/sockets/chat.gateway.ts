@@ -15,7 +15,6 @@ import {
   CreateDirectMessageChatDto,
   NewMessageDto,
   OpenChatDto,
-  OpenChatFromDeveloperDto,
   ViewMessageDto,
 } from "../chat/chat.dtos";
 import { ConnectWebsocketDto } from "./sockets.dtos";
