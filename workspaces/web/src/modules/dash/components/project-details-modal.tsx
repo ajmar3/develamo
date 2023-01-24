@@ -1,10 +1,12 @@
 import { useProjectDetailsStore } from "../stores/project-details.store";
 import Image from "next/image";
 import { HandThumbUpIcon } from "@heroicons/react/24/outline";
+import { useDevAuthStore } from "modules/auth/store/auth-store";
+import Link from "next/link";
 
 export const ProjectDetailsModal: React.FC = () => {
   const info = useProjectDetailsStore((state) => state.projectInfo);
-
+  const developerId = useDevAuthStore((state) => state.devInfo?.id);
   if (!info)
     return (
       <>
@@ -31,7 +33,7 @@ export const ProjectDetailsModal: React.FC = () => {
       </>
     );
 
-  console.log(info)
+  console.log(info);
 
   return (
     <>
@@ -65,7 +67,9 @@ export const ProjectDetailsModal: React.FC = () => {
             {info.repoURL && (
               <div>
                 <label className="text-sm">Repo Url</label>
-                <div className="text-white text-opacity-80"><a href={info.repoURL}>{info.repoURL}</a></div>
+                <div className="text-white text-opacity-80">
+                  <a href={info.repoURL}>{info.repoURL}</a>
+                </div>
               </div>
             )}
             <div className="w-full flex justify-between items-center mt-3">
@@ -120,14 +124,28 @@ export const ProjectDetailsModal: React.FC = () => {
                   Back
                 </label>
               </div>
-              <div className="modal-action">
-                <label
-                  htmlFor="project-details-modal"
-                  className="btn btn-primary"
-                >
-                  Apply to join
-                </label>
-              </div>
+              {info.developers.find((x) => x.id == developerId) ||
+              info.owner.id == developerId ? (
+                <Link href={"/project/"+info.id}>
+                  <div className="modal-action">
+                    <label
+                      htmlFor="project-details-modal"
+                      className="btn btn-primary"
+                    >
+                      Go To Project
+                    </label>
+                  </div>
+                </Link>
+              ) : (
+                <div className="modal-action">
+                  <label
+                    htmlFor="project-details-modal"
+                    className="btn btn-primary"
+                  >
+                    Apply to join
+                  </label>
+                </div>
+              )}
             </div>
           </div>
         </div>

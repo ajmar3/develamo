@@ -71,7 +71,7 @@ export const DashMyProjects: React.FC = () => {
             <div className="grid grid-cols-2 gap-2">
               {myProjectsQuery.data.ownedProjects.map((project) => (
                 <Link
-                  href={"#"}
+                  href={"/project/"+project.id}
                   key={project.id}
                   className="bg-base-100 rounded-md w-full h-32 p-3 cursor-pointer hover:shadow-md flex flex-col justify-between"
                 >
