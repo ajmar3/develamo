@@ -58,13 +58,19 @@ export const useChatMessageStore = create<IDirectMessageStore>((set) => ({
       );
       if (!chat) return { chats: state.chats };
       chat.messages = data.newMessages;
+      const newChats = [
+        ...state.chats.directMessageChats.filter((x) => x.id != chat.id),
+        chat,
+      ];
+      newChats.sort((a, b) => {
+        if (a.messages.length < 1) return 1;
+        else if (b.messages.length < 1) return -1;
+        else return new Date(a.messages[0].sentAt).getMilliseconds() - new Date(b.messages[0].sentAt).getMilliseconds();
+      });
       return {
         chats: {
           projectChats: state.chats.projectChats,
-          directMessageChats: [
-            ...state.chats.directMessageChats.filter((x) => x.id != chat.id),
-            chat,
-          ],
+          directMessageChats: newChats,
         },
       };
     }),
