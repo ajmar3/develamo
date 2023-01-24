@@ -1,4 +1,10 @@
-import { IsArray, IsNumber, IsString, MinLength } from "class-validator";
+import {
+  IsArray,
+  IsNumber,
+  IsString,
+  MinLength,
+  ValidateIf,
+} from "class-validator";
 
 export class ProjectFeedDto {
   @IsNumber()
@@ -16,4 +22,8 @@ export class CreateProjectDto {
 
   @IsArray()
   tagIds: string[];
+
+  @IsString()
+  @ValidateIf((object, value) => value != null || value != undefined)
+  repoURL: string;
 }

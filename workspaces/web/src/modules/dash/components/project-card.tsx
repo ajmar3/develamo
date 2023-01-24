@@ -27,6 +27,7 @@ export type DashProjectCardType = {
     id: string;
     title: string;
   }[];
+  repoURL?: string
   likes: {
     developer: {
       id: string

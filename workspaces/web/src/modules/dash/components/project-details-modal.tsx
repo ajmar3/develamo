@@ -31,6 +31,8 @@ export const ProjectDetailsModal: React.FC = () => {
       </>
     );
 
+  console.log(info)
+
   return (
     <>
       <input
@@ -60,6 +62,12 @@ export const ProjectDetailsModal: React.FC = () => {
                 ))}
               </div>
             </div>
+            {info.repoURL && (
+              <div>
+                <label className="text-sm">Repo Url</label>
+                <div className="text-white text-opacity-80"><a href={info.repoURL}>{info.repoURL}</a></div>
+              </div>
+            )}
             <div className="w-full flex justify-between items-center mt-3">
               <div>
                 <label className="text-sm">Owner</label>

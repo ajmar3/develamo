@@ -13,6 +13,7 @@ export const CreateProjectModal: React.FC = () => {
 
   const [titleInput, setTitleInput] = useState("");
   const [descInput, setDescInput] = useState("");
+  const [repoInput, setRepoInput] = useState("");
 
   const filterStore = useCreateProjectStore((state) => ({
     availableTags: state.availableTags,
@@ -25,7 +26,7 @@ export const CreateProjectModal: React.FC = () => {
     allTags: state.allTags,
   }));
 
-  const [difficulty, setDifficulty] = useState(1);
+  const githubUsername = useDevAuthStore(state => state.devInfo?.githubUsername);
 
   useEffect(() => {
     const newSelected = [];
@@ -49,6 +50,7 @@ export const CreateProjectModal: React.FC = () => {
         tagIds: filterStore.selectedTagInfo.map((x) => x.id),
         title: titleInput,
         description: descInput,
+        repoURL: `https://github.com/${githubUsername}/${repoInput}`,
       });
     }
   };
@@ -94,6 +96,18 @@ export const CreateProjectModal: React.FC = () => {
                     />
                   </div>
                 ))}
+            </div>
+          </div>
+          <div className="w-full mt-5">
+            <div className="mb-1">Repo URL</div>
+            <div className="flex w-full h-full">
+              <div className="h-12 bg-base-300 flex items-center justify-center p-1 rounded-l-md pr-1 pl-2 font-semibold">https://github.com/{githubUsername}/</div>
+              <input
+                value={repoInput}
+                onChange={(e) => setRepoInput(e.target.value)}
+                placeholder="project-name"
+                className="input input-bordered w-full max-w-xs rounded-l-none pl-1"
+              />
             </div>
           </div>
           <div className="w-full mt-5">

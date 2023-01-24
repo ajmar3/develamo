@@ -51,6 +51,7 @@ export class ProjectService {
             title: true,
           },
         },
+        repoURL: true,
         likes: {
           select: {
             developerId: true,
@@ -168,6 +169,7 @@ export class ProjectService {
         tags: {
           connect: connectRecord,
         },
+        repoURL: model.repoURL,
       },
     });
 

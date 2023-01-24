@@ -6,6 +6,7 @@ export type CreateProjectType = {
   title: string
   description: string
   tagIds: string[]
+  repoURL?: string
 }
 
 export const useCreateProjectMutation = () => {

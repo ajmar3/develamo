@@ -90,6 +90,7 @@ model Project {
   likes ProjectLike[]
   chat  ProjectChat?
   chatId  String?  @unique
+  repoURL  String?
 }
 
 model ProjectLike {
