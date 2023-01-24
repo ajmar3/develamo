@@ -16,6 +16,7 @@ export interface IDirectMessageStore {
     directMessageChats: ChatListDMType[];
     projectChats: ChatListProjectType[];
   }) => void;
+  addDirectMessageChat: (data: ChatListDMType) => void;
   updateChatMessages: (data: {
     chatId: string;
     newMessages: DirectMessageType[];
@@ -39,6 +40,14 @@ export const useChatMessageStore = create<IDirectMessageStore>((set) => ({
     directMessageChats: ChatListDMType[];
     projectChats: ChatListProjectType[];
   }) => set((state) => ({ chats: chats })),
+  addDirectMessageChat: (data: ChatListDMType) => set(state =>{
+    return {
+      chats: {
+        projectChats: state.chats.projectChats,
+        directMessageChats: [...state.chats.directMessageChats, data]
+      }
+    };
+  }),
   updateChatMessages: (data: {
     chatId: string;
     newMessages: DirectMessageType[];

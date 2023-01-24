@@ -15,6 +15,8 @@ import {
 import { useConnectionStore } from "../stores/connections.store";
 import { useChatMessageStore } from "../stores/chat-message.store";
 import { DashProjectCard } from "./project-card";
+import { useDevAuthStore } from "modules/auth/store/auth-store";
+import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
 
 export const DashSearchResults: React.FC<{
   search: string;
@@ -27,7 +29,8 @@ export const DashSearchResults: React.FC<{
   const [resultsTab, setResultsTab] = useState<number>(1);
 
   const searchMutation = useSearchMutation();
-
+  const chats = useChatMessageStore((state) => state.chats);
+  const setDashTab = useDashNavStore(state => state.setActiveTab);
   const connections = useConnectionStore((state) => state.connections);
   const requests = useConnectionStore((state) => state.connectionRequests);
   const sentRequests = useConnectionStore((state) => state.sentRequests);
@@ -47,6 +50,7 @@ export const DashSearchResults: React.FC<{
       setSearchResults({ developers: [], projects: [] });
     }
   }, [searchMutation.isSuccess, connections, requests, sentRequests]);
+
 
   if (searchMutation.isLoading)
     return (
@@ -127,20 +131,51 @@ export const DashSearchResults: React.FC<{
 const PeopleActionButton: React.FC<{
   developerId: string;
 }> = (props) => {
+  const developerId = useDevAuthStore((state) => state.devInfo?.id as string);
   const connections = useConnectionStore((state) => state.connections);
   const requests = useConnectionStore((state) => state.connectionRequests);
   const sentRequests = useConnectionStore((state) => state.sentRequests);
   const makeConRequest = useActionSocketStore((state) => state.sendConRequest);
-  const openChatFromDeveloper = useChatSocketStore(state => state.openChatFromDeveloper);
   const acceptConRequest = useActionSocketStore(
     (state) => state.acceptConRequest
   );
   const rejectConRequest = useActionSocketStore(
     (state) => state.rejectConRequest
   );
+  const chats = useChatMessageStore((state) => state.chats);
+  const createDirectMessageChat = useChatSocketStore(
+    (state) => state.createDirectMessageChat
+  );
+  const setDashNavTab = useDashNavStore((state) => state.setActiveTab);
+  const openChat = useChatSocketStore(state => state.openChat);
+
+  useEffect(() => {
+    const chat = chats.directMessageChats.find((x) =>
+      x.participants.map((x) => x.id).includes(props.developerId)
+    );
+    if (chat) {
+      openChat(chat.id);
+    }
+  }, [chats]);
+
+  const openSelectedChat = () => {
+    const chat = chats.directMessageChats.find((x) =>
+      x.participants.map((x) => x.id).includes(props.developerId)
+    );
+
+    if (!chat) {
+      createDirectMessageChat([props.developerId, developerId]);
+    } else {
+      openChat(chat.id);
+    }
+  };
 
   if (connections.find((x) => x.developerId == props.developerId))
-    return <button className="btn btn-xs btn-primary" onClick={() => openChatFromDeveloper(props.developerId)}>Chat</button>;
+    return (
+      <button className="btn btn-xs btn-primary" onClick={() => openSelectedChat()}>
+        Chat
+      </button>
+    );
   else if (requests.find((x) => x.requesterId == props.developerId)) {
     const request = requests.find((x) => x.requesterId == props.developerId);
     return (

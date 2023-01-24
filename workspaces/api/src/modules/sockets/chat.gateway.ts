@@ -1,4 +1,10 @@
-import { CACHE_MANAGER, Inject, UseGuards, UsePipes } from "@nestjs/common";
+import {
+  CACHE_MANAGER,
+  Inject,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+} from "@nestjs/common";
 import { Cache } from "cache-manager";
 import {
   OnGatewayDisconnect,
@@ -8,7 +14,7 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsGuard } from "../auth/ws.guard";
-import { WSValidationPipe } from "./sockets.pipes";
+import { WsExceptionFilter, WSValidationPipe } from "./sockets.pipes";
 import { IValidatedSocket } from "./socket.interfaces";
 import { ChatService } from "../chat/chat.service";
 import {
@@ -28,6 +34,7 @@ import { ConnectWebsocketDto } from "./sockets.dtos";
 })
 @UseGuards(WsGuard)
 @UsePipes(new WSValidationPipe())
+@UseFilters(new WsExceptionFilter())
 export class ChatGateway implements OnGatewayDisconnect {
   constructor(
     private chatService: ChatService,

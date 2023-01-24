@@ -29,14 +29,19 @@ export class ChatService {
         connections: {
           select: {
             id: true,
+            developerId: true,
           },
         },
       },
     });
 
-    const connectionIds = connectionList.connections.map((x) => x.id);
+    const connectionIds = connectionList.connections.map((x) => x.developerId);
 
-    if (!model.developerIds.every((x) => connectionIds.includes(x)))
+    if (
+      !model.developerIds.every(
+        (x) => connectionIds.includes(x) || x == developerId
+      )
+    )
       throw new BadRequestException("Can only message your friends");
 
     if (model.developerIds.length != 2)
