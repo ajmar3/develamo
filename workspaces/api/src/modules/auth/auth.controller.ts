@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   Res,
@@ -14,6 +15,7 @@ import { Public } from "./auth.decorators";
 import { IValidatedRequest } from "./auth.interfaces";
 import { AuthRolesEnum } from "./auth.enums";
 import { AdminLoginDto, AdminTokenGenerateDto } from "./auth.dtos";
+import { request } from "http";
 
 @Controller("auth")
 export class AuthController {
@@ -37,6 +39,14 @@ export class AuthController {
   @Get("me")
   async getUserInfo(@Req() request: IValidatedRequest) {
     return await this.authService.getUserInfo(request.user.id);
+  }
+
+  @Get("project/:id/me")
+  async verifyUserForProject(
+    @Req() request: IValidatedRequest,
+    @Param("id") id: string
+  ) {
+    return await this.authService.verifyUserForProject(request.user.id, id);
   }
 
   @Post("admin-generate-token")

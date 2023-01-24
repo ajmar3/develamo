@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Developer } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import { CreateProjectDto, ProjectFeedDto } from "./project.dtos";
 
@@ -174,5 +179,47 @@ export class ProjectService {
     });
 
     return newProject.id;
+  }
+
+  async getProjectById(projectId: string, developerId: string) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: projectId,
+      },
+      select: {
+        developers: {
+          select: {
+            id: true,
+            githubUsername: true,
+            name: true,
+            avatarURL: true,
+          },
+        },
+        owner: {
+          select: {
+            id: true,
+            githubUsername: true,
+            name: true,
+            avatarURL: true,
+          },
+        },
+      },
+    });
+
+    if (!project)
+      throw new BadRequestException("could not find project with that Id");
+
+    if (
+      !(
+        project.developers.find((x) => x.id == developerId) ||
+        project.owner.id == developerId
+      )
+    ) {
+      throw new UnauthorizedException(
+        "You are not authorised for this project"
+      );
+    }
+
+    return project;
   }
 }

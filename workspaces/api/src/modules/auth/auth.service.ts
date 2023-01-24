@@ -8,6 +8,7 @@ import { JwtService } from "@nestjs/jwt";
 import { lastValueFrom } from "rxjs";
 import { ConnectionService } from "../connection/connection.service";
 import { DeveloperService } from "../developer/developer.service";
+import { ProjectService } from "../project/project.service";
 import { AdminLoginDto, AdminTokenGenerateDto } from "./auth.dtos";
 import { AuthRolesEnum } from "./auth.enums";
 
@@ -17,7 +18,8 @@ export class AuthService {
     private httpService: HttpService,
     private developerService: DeveloperService,
     private conService: ConnectionService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private projectService: ProjectService
   ) {}
 
   async getGithubData(code: string) {
@@ -123,5 +125,19 @@ export class AuthService {
       id: adminUser.id,
       role: AuthRolesEnum.ADMIN,
     });
+  }
+
+  async verifyUserForProject(developerId: string, projectId: string) {
+    const developer = await this.developerService.getDeveloperById(developerId);
+
+    const project = await this.projectService.getProjectById(
+      projectId,
+      developer.id
+    );
+
+    return {
+      developer: developer,
+      project: project,
+    };
   }
 }
