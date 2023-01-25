@@ -9,3 +9,8 @@ export class RespondConnectionRequestDto {
   @IsString()
   requestId: string;
 }
+
+export class CreateProjectApplicationDto {
+  @IsString()
+  projectId: string;
+}

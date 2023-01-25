@@ -16,12 +16,14 @@ import { Server, Socket } from "socket.io";
 import { WsGuard } from "../auth/ws.guard";
 import {
   CreateConnectionRequestDto,
+  CreateProjectApplicationDto,
   RespondConnectionRequestDto,
 } from "../connection/connection.dtos";
 import { ConnectionService } from "../connection/connection.service";
 import { WsExceptionFilter, WSValidationPipe } from "./sockets.pipes";
 import { ConnectWebsocketDto } from "./sockets.dtos";
 import { IValidatedSocket } from "./socket.interfaces";
+import { ProjectService } from "../project/project.service";
 
 @WebSocketGateway({
   cors: {
@@ -36,6 +38,7 @@ import { IValidatedSocket } from "./socket.interfaces";
 export class ActionsGateway implements OnGatewayDisconnect {
   constructor(
     private conService: ConnectionService,
+    private projectService: ProjectService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
@@ -91,6 +94,19 @@ export class ActionsGateway implements OnGatewayDisconnect {
     client.emit("connection-update", newConData);
   }
 
+  @SubscribeMessage("apply-to-project")
+  async applyToProject(
+    client: IValidatedSocket,
+    data: CreateProjectApplicationDto
+  ) {
+    const newApplication = await this.projectService.createProjectApplication(
+      data,
+      client.user.id
+    );
+
+    client.emit("new-application", newApplication);
+  }
+
   @SubscribeMessage("connected")
   async handleWebsocketConnect(
     client: IValidatedSocket,
@@ -99,8 +115,13 @@ export class ActionsGateway implements OnGatewayDisconnect {
     const connections = await this.conService.getConnectionsForDeveloper(
       client.user.id
     );
+    const projectApplications =
+      await this.projectService.getProjectApplicationsForDeveloper(
+        client.user.id
+      );
 
     client.emit("connection-update", connections);
+    client.emit("project-aplication-update", projectApplications);
 
     await this.cacheManager.set(
       data.developerId,

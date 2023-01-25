@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { Developer } from "@prisma/client";
+import { CreateProjectApplicationDto } from "../connection/connection.dtos";
 import { PrismaService } from "../database/prisma.service";
 import { CreateProjectDto, ProjectFeedDto } from "./project.dtos";
 
@@ -221,5 +222,44 @@ export class ProjectService {
     }
 
     return project;
+  }
+
+  async getProjectApplicationsForDeveloper(developerId: string) {
+    const projectApplications =
+      await this.prismaService.projectApplication.findMany({
+        where: {
+          requesterId: developerId,
+          resolved: false,
+        },
+      });
+    return projectApplications;
+  }
+
+  async createProjectApplication(
+    data: CreateProjectApplicationDto,
+    developerId: string
+  ) {
+    const existingApplication =
+      await this.prismaService.projectApplication.findFirst({
+        where: {
+          requesterId: developerId,
+          projectId: data.projectId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (existingApplication)
+      throw new BadRequestException("You have already applied to that project");
+
+    const newApplication = await this.prismaService.projectApplication.create({
+      data: {
+        projectId: data.projectId,
+        requesterId: developerId,
+      },
+    });
+
+    return newApplication;
   }
 }

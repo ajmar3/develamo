@@ -56,6 +56,16 @@ export type OwnedProjectType = {
   }[]
 }
 
+export type ProjectApplicationType = {
+  id: string
+  requesterId:  string
+  projectId: string
+  createdAt: Date
+  resolved:  boolean
+  resolvedAt?: Date
+  successful: boolean
+}
+
 export const useGetMyProjectsQuery = () => {
 
   return useQuery<MyConnectionsType>({

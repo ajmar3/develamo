@@ -3,10 +3,17 @@ import Image from "next/image";
 import { HandThumbUpIcon } from "@heroicons/react/24/outline";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Link from "next/link";
+import { useProjectStrore } from "../stores/project.store";
+import { useActionSocketStore } from "modules/sockets/actions.store";
 
 export const ProjectDetailsModal: React.FC = () => {
   const info = useProjectDetailsStore((state) => state.projectInfo);
   const developerId = useDevAuthStore((state) => state.devInfo?.id);
+  const projectApplications = useProjectStrore(
+    (state) => state.myProjectApplications
+  );
+  const applyToJoinProject = useActionSocketStore(state => state.applyToJoinProject);
+
   if (!info)
     return (
       <>
@@ -33,7 +40,35 @@ export const ProjectDetailsModal: React.FC = () => {
       </>
     );
 
-  console.log(info);
+  const getButton = () => {
+    if (projectApplications.find((x) => x.projectId == info?.id))
+      return (
+        <div className="modal-action">
+          <label className="btn btn-disabled">Applied</label>
+        </div>
+      );
+    else if (
+      info.developers.find((x) => x.id == developerId) ||
+      info.owner.id == developerId
+    )
+      return (
+        <Link href={"/project/" + info.id}>
+          <div className="modal-action">
+            <label htmlFor="project-details-modal" className="btn btn-primary">
+              Go To Project
+            </label>
+          </div>
+        </Link>
+      );
+    else
+      return (
+        <div className="modal-action" onClick={() => applyToJoinProject(info.id)}>
+          <label htmlFor="project-details-modal" className="btn btn-primary">
+            Apply to join
+          </label>
+        </div>
+      );
+  };
 
   return (
     <>
@@ -124,28 +159,7 @@ export const ProjectDetailsModal: React.FC = () => {
                   Back
                 </label>
               </div>
-              {info.developers.find((x) => x.id == developerId) ||
-              info.owner.id == developerId ? (
-                <Link href={"/project/"+info.id}>
-                  <div className="modal-action">
-                    <label
-                      htmlFor="project-details-modal"
-                      className="btn btn-primary"
-                    >
-                      Go To Project
-                    </label>
-                  </div>
-                </Link>
-              ) : (
-                <div className="modal-action">
-                  <label
-                    htmlFor="project-details-modal"
-                    className="btn btn-primary"
-                  >
-                    Apply to join
-                  </label>
-                </div>
-              )}
+              {getButton()}
             </div>
           </div>
         </div>
