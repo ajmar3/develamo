@@ -21,7 +21,6 @@ export const DashChat: React.FC = () => {
   const setChatOpening = useChatMessageStore((state) => state.setChatOpening);
 
   useEffect(() => {
-    console.log("hello", chatInfo)
     if (chatInfo) setChatOpening(false);
   }, [chatInfo]);
 

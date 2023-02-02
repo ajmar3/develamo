@@ -9,7 +9,6 @@ export const DashNavBar = () => {
   useEffect(() => {
     if (router.pathname && router.pathname.split("/").length > 2) {
       setRoute(router.pathname.split("/")[2]);
-      console.log(router.pathname.split("/")[2])
     }
   }, [, router.pathname]);
 

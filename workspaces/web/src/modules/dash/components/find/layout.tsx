@@ -1,27 +1,10 @@
-import { DashNotifications } from "../notifications";
-import { useActionSocketStore } from "modules/sockets/actions.store";
-import { useEffect, useState } from "react";
-import { useDevAuthStore } from "modules/auth/store/auth-store";
-import { DashNavBar } from "../nav-bar";
-import { useChatSocketStore } from "modules/sockets/chat.store";
 import { DashSearchResults } from "../search-results";
 import { CreateProjectModal } from "../create-project-modal";
 import { DashFeed } from "./feed";
-import { DashChat } from "../chat/chat";
+import { useState } from "react";
 
 export const DashFindProjectLayout = () => {
-  const actionSocket = useActionSocketStore();
-  const chatSocket = useChatSocketStore();
-
-  const developerId = useDevAuthStore((state) => state.devInfo?.id);
   const [searchInput, setSearchInput] = useState("");
-
-  useEffect(() => {
-    if (developerId) {
-      actionSocket.initSocket(developerId);
-      chatSocket.initSocket(developerId);
-    }
-  }, [, developerId]);
 
   return (
     <div className="w-full h-full">

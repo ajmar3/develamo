@@ -1,10 +1,9 @@
 import { useProjectDetailsStore } from "../../stores/project-details.store";
 import Image from "next/image";
-import { HandThumbUpIcon } from "@heroicons/react/24/outline";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Link from "next/link";
 import { useProjectStrore } from "../../stores/project.store";
-import { useActionSocketStore } from "modules/sockets/actions.store";
+import { useConnectionSocketStore } from "modules/sockets/connection.store";
 
 export const ProjectDetailsModal: React.FC = () => {
   const info = useProjectDetailsStore((state) => state.projectInfo);
@@ -12,7 +11,7 @@ export const ProjectDetailsModal: React.FC = () => {
   const projectApplications = useProjectStrore(
     (state) => state.myProjectApplications
   );
-  const applyToJoinProject = useActionSocketStore(state => state.applyToJoinProject);
+  const applyToJoinProject = useConnectionSocketStore(state => state.applyToJoinProject);
 
   if (!info)
     return (

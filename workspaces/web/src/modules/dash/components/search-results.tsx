@@ -1,6 +1,6 @@
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
-import { useActionSocketStore } from "modules/sockets/actions.store";
+import { useActionSocketStore } from "modules/sockets/connection.store";
 import { useChatSocketStore } from "modules/sockets/chat.store";
 import Image from "next/image";
 import { useEffect, useState } from "react";

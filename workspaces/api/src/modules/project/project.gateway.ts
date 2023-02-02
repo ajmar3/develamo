@@ -1,7 +1,7 @@
 import { UseFilters, UseGuards, UsePipes } from "@nestjs/common";
 import { SubscribeMessage, WebSocketGateway } from "@nestjs/websockets";
 import { WsGuard } from "../auth/ws.guard";
-import { WsExceptionFilter, WSValidationPipe } from "./sockets.pipes";
+import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
 
 @WebSocketGateway({
   cors: {

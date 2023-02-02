@@ -9,8 +9,6 @@ export const ProfileLayout = () => {
 
   const authStore = useDevAuthStore();
 
-  console.log(authStore);
-
   return (
     <div className="w-screen h-screen flex flex-col">
       <div className="w-full">

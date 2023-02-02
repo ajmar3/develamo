@@ -59,7 +59,6 @@ export const DashChatMessenger: React.FC = () => {
   const sendMessage = () => {
     if (!newMessageInput) return;
     if (!sendEnabled) {
-      console.log("send blocked");
       return;
     }
     createMessage({
@@ -68,7 +67,6 @@ export const DashChatMessenger: React.FC = () => {
     });
     setSendEnabled(false);
     setNewMessageInput("");
-    console.log("sent");
   };
 
   return (

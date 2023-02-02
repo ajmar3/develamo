@@ -1,5 +1,5 @@
 import { DashNotifications } from "./notifications";
-import { useActionSocketStore } from "modules/sockets/actions.store";
+import { useConnectionSocketStore } from "modules/sockets/connection.store";
 import { useEffect } from "react";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { DashNavBar } from "./nav-bar";
@@ -11,14 +11,14 @@ export type DashLayoutPropsType = {
 }
 
 export const DashLayout: React.FC<DashLayoutPropsType> = (props) => {
-  const actionSocket = useActionSocketStore();
+  const connectionSocket = useConnectionSocketStore();
   const chatSocket = useChatSocketStore();
 
   const developerId = useDevAuthStore(state => state.devInfo?.id);
 
   useEffect(() => {
     if (developerId) {
-      actionSocket.initSocket(developerId);
+      connectionSocket.initSocket(developerId);
       chatSocket.initSocket(developerId);
     }
   }, [, developerId]);

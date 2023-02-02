@@ -18,11 +18,11 @@ import {
   CreateConnectionRequestDto,
   CreateProjectApplicationDto,
   RespondConnectionRequestDto,
-} from "../connection/connection.dtos";
-import { ConnectionService } from "../connection/connection.service";
-import { WsExceptionFilter, WSValidationPipe } from "./sockets.pipes";
-import { ConnectWebsocketDto } from "./sockets.dtos";
-import { IValidatedSocket } from "./socket.interfaces";
+} from "./connection.dtos";
+import { ConnectionService } from "./connection.service";
+import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
+import { ConnectWebsocketDto } from "../sockets/sockets.dtos";
+import { IValidatedSocket } from "../sockets/socket.interfaces";
 import { ProjectService } from "../project/project.service";
 
 @WebSocketGateway({
@@ -30,12 +30,12 @@ import { ProjectService } from "../project/project.service";
     origin: "http://localhost:3000",
     credentials: true,
   },
-  namespace: "actions",
+  namespace: "connection",
 })
 @UseGuards(WsGuard)
 @UsePipes(new WSValidationPipe())
 @UseFilters(new WsExceptionFilter())
-export class ActionsGateway implements OnGatewayDisconnect {
+export class ConnectionGateway implements OnGatewayDisconnect {
   constructor(
     private conService: ConnectionService,
     private projectService: ProjectService,

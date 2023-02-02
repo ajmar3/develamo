@@ -5,7 +5,7 @@ import { useProjectStrore } from "modules/dash/stores/project.store";
 import { io, Socket } from "socket.io-client";
 import create from "zustand";
 
-export interface IActionSocketStore {
+export interface IConnectionSocketStore {
   socket: Socket;
   sendConRequest: (requestedId: string) => void;
   acceptConRequest: (requestId: string) => void;
@@ -14,11 +14,11 @@ export interface IActionSocketStore {
   initSocket: (developerId: string) => void
 }
 
-export const useActionSocketStore = create<IActionSocketStore>((set) => {
+export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => {
   const connectStore = useConnectionStore.getState();
   const projectStore = useProjectStrore.getState();
 
-  const socket = io(process.env.NEXT_PUBLIC_ACTIONS_WEBSOCKET_URL as string, {
+  const socket = io(process.env.NEXT_PUBLIC_CONNECTION_WEBSOCKET_URL as string, {
     withCredentials: true,
   });
 

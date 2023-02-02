@@ -14,16 +14,16 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsGuard } from "../auth/ws.guard";
-import { WsExceptionFilter, WSValidationPipe } from "./sockets.pipes";
-import { IValidatedSocket } from "./socket.interfaces";
-import { ChatService } from "../chat/chat.service";
+import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
+import { IValidatedSocket } from "../sockets/socket.interfaces";
+import { ChatService } from "./chat.service";
 import {
   CreateDirectMessageChatDto,
   NewMessageDto,
   OpenChatDto,
   ViewMessageDto,
-} from "../chat/chat.dtos";
-import { ConnectWebsocketDto } from "./sockets.dtos";
+} from "./chat.dtos";
+import { ConnectWebsocketDto } from "../sockets/sockets.dtos";
 
 @WebSocketGateway({
   cors: {

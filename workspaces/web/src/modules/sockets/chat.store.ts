@@ -7,7 +7,6 @@ import {
   ChatListProjectType,
   DirectMessageType,
 } from "modules/common/types/chat.types";
-import { DashTabEnum, useDashNavStore } from "modules/dash/stores/nav-store";
 
 export interface IChatSocketStore {
   socket: Socket;
@@ -20,7 +19,6 @@ export interface IChatSocketStore {
 
 export const useChatSocketStore = create<IChatSocketStore>((set) => {
   const chatStore = useChatMessageStore.getState();
-  const dashNavStore = useDashNavStore.getState();
 
   const socket = io(process.env.NEXT_PUBLIC_CHAT_WEBSOCKET_URL as string, {
     withCredentials: true,
@@ -41,7 +39,6 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
   });
 
   socket.on("chat-opened", (data: ChatInfoType) => {
-    console.log("bing", data)
     chatStore.setOpenChatInfo(data);
     chatStore.setOpenChatMessages(data.messages);
     socket.emit("view-direct-message", { chatId: data.id });
@@ -60,9 +57,6 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
     (data: { chatId: string; newMessages: DirectMessageType[] }) => {
       chatStore.setOpenChatMessages(data.newMessages);
       chatStore.updateChatMessages(data);
-      console.log("runnning", chatStore.openChatInfo)
-      console.log("runnning", chatStore.openChatId)
-      console.log("runnning", data.chatId)
       if (chatStore.openChatInfo && chatStore.openChatInfo.id == data.chatId) {
         socket.emit("view-direct-message", { chatId: data.chatId });
       }
