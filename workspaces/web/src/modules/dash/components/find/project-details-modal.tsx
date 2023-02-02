@@ -1,9 +1,9 @@
-import { useProjectDetailsStore } from "../stores/project-details.store";
+import { useProjectDetailsStore } from "../../stores/project-details.store";
 import Image from "next/image";
 import { HandThumbUpIcon } from "@heroicons/react/24/outline";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Link from "next/link";
-import { useProjectStrore } from "../stores/project.store";
+import { useProjectStrore } from "../../stores/project.store";
 import { useActionSocketStore } from "modules/sockets/actions.store";
 
 export const ProjectDetailsModal: React.FC = () => {

@@ -2,8 +2,8 @@ import { BoltIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Image from "next/image";
 import { useState } from "react";
-import { useUpdateDeveloperMutation } from "../hooks/useUpdateDeveloperMutation";
-import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
+import { useUpdateDeveloperMutation } from "../../hooks/useUpdateDeveloperMutation";
+import { DashTabEnum, useDashNavStore } from "../../stores/nav-store";
 
 export const DashUpdateProfileModal: React.FC = () => {
   const userInfo = useDevAuthStore((state) => state.devInfo);

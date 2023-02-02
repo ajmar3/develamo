@@ -22,7 +22,7 @@ export default function DesktopHomeLayout() {
   }, [, router.query]);
 
   useEffect(() => {
-    if (mutation.isSuccess) router.push("/dash");
+    if (mutation.isSuccess) router.push("/dash/find");
   }, [mutation, mutation.data, router]);
 
   return (

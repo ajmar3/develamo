@@ -1,5 +1,5 @@
 import create from "zustand";
-import { DashProjectCardType } from "../components/project-card";
+import { DashProjectCardType } from "../components/find/project-card";
 
 export interface IProjectDetailsStore {
   projectInfo?: DashProjectCardType

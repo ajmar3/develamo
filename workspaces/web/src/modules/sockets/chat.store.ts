@@ -14,6 +14,7 @@ export interface IChatSocketStore {
   createDirectMessageChat: (developerIds: string[]) => void;
   createDirectMessage: (data: { chatId: string; text: string }) => void;
   openChat: (chatId: string) => void;
+  closeChat: () => void;
   initSocket: (developerId: string) => void;
 }
 
@@ -36,22 +37,21 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
   );
 
   socket.on("new-chat", (data: ChatListDMType) => {
-    console.log("here", data)
     chatStore.addDirectMessageChat(data);
   });
 
   socket.on("chat-opened", (data: ChatInfoType) => {
+    console.log("bing", data)
     chatStore.setOpenChatInfo(data);
     chatStore.setOpenChatMessages(data.messages);
-    dashNavStore.setActiveTab(DashTabEnum.CHAT);
     socket.emit("view-direct-message", { chatId: data.id });
   });
 
   socket.on(
     "message-viewed-updates",
     (data: { chatId: string; newMessages: DirectMessageType[] }) => {
-      chatStore.setOpenChatMessages(data.newMessages);
       chatStore.updateChatMessages(data);
+      chatStore.setOpenChatMessages(data.newMessages);
     }
   );
 
@@ -60,6 +60,9 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
     (data: { chatId: string; newMessages: DirectMessageType[] }) => {
       chatStore.setOpenChatMessages(data.newMessages);
       chatStore.updateChatMessages(data);
+      console.log("runnning", chatStore.openChatInfo)
+      console.log("runnning", chatStore.openChatId)
+      console.log("runnning", data.chatId)
       if (chatStore.openChatInfo && chatStore.openChatInfo.id == data.chatId) {
         socket.emit("view-direct-message", { chatId: data.chatId });
       }
@@ -82,6 +85,11 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
       socket.emit("open-chat", {
         chatId: chatId,
       });
+    },
+    closeChat: () => {
+      chatStore.setOpenChatId(undefined);
+      chatStore.setOpenChatInfo(undefined);
+      chatStore.setOpenChatMessages(undefined);
     },
     initSocket: (developerId: any) => {
       socket.emit("connected", {

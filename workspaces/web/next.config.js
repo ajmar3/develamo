@@ -7,6 +7,15 @@ const nextConfig = {
       "avatars.githubusercontent.com",
       "placeimg.com"
     ]
+  },
+  async redirects() {
+    return [
+      {
+        source: '/dash',
+        destination: '/dash/find',
+        permanent: true
+      }
+    ];
   }
 };
 

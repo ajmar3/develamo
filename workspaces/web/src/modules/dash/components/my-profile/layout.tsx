@@ -1,10 +1,8 @@
-import { BoltIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Image from "next/image";
-import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
 import { DashUpdateProfileModal } from "./update-profile-modal";
 
-export const DashMyProfile: React.FC = () => {
+export const DashMyProfileLayout: React.FC = () => {
   const userInfo = useDevAuthStore((state) => state.devInfo);
   return (
     <div className="w-full px-6 py-4">

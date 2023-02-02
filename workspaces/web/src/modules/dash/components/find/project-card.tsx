@@ -2,7 +2,7 @@ import { HandThumbUpIcon } from "@heroicons/react/24/outline";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Image from "next/image";
 import { useEffect } from "react";
-import { useProjectDetailsStore } from "../stores/project-details.store";
+import { useProjectDetailsStore } from "../../stores/project-details.store";
 
 export type DashProjectCardType = {
   id: string;

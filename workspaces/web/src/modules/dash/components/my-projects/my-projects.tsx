@@ -1,39 +1,15 @@
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
 import Image from "next/image";
 import Link from "next/link";
-import { useGetMyProjectsQuery } from "../hooks/useGetMyProjectsQuery";
-import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
+import { useGetMyProjectsQuery } from "../../hooks/useGetMyProjectsQuery";
+import { DashTabEnum, useDashNavStore } from "../../stores/nav-store";
 
 export const DashMyProjects: React.FC = () => {
-  const dashNavStore = useDashNavStore();
-
   const myProjectsQuery = useGetMyProjectsQuery();
 
   if (myProjectsQuery.isLoading || !myProjectsQuery.data)
     return (
       <div className="w-full flex flex-col gap-3 h-full">
-        <div className="w-full flex justify-center">
-          <div className="tabs">
-            <a
-              className="tab tab-bordered"
-              onClick={() => dashNavStore.setActiveTab(DashTabEnum.FIND)}
-            >
-              Find A Project
-            </a>
-            <a
-              className="tab tab-bordered tab-active"
-              onClick={() => dashNavStore.setActiveTab(DashTabEnum.MY_PROJECTS)}
-            >
-              My Projects
-            </a>
-            <a
-              className="tab tab-bordered"
-              onClick={() => dashNavStore.setActiveTab(DashTabEnum.CHAT)}
-            >
-              Chats
-            </a>
-          </div>
-        </div>
         <div className="w-full flex flex-col h-full flex-1 justify-center items-center mt-32">
           <LoadingSpinner size="medium" />
         </div>
@@ -42,29 +18,7 @@ export const DashMyProjects: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col gap-3 h-full overflow-y-scroll">
-      <div className="w-full flex justify-center">
-        <div className="tabs">
-          <a
-            className="tab tab-bordered"
-            onClick={() => dashNavStore.setActiveTab(DashTabEnum.FIND)}
-          >
-            Find A Project
-          </a>
-          <a
-            className="tab tab-bordered tab-active"
-            onClick={() => dashNavStore.setActiveTab(DashTabEnum.MY_PROJECTS)}
-          >
-            My Projects
-          </a>
-          <a
-            className="tab tab-bordered"
-            onClick={() => dashNavStore.setActiveTab(DashTabEnum.CHAT)}
-          >
-            Chats
-          </a>
-        </div>
-      </div>
-      <div className="w-full px-4 py-2 flex flex-col gap-6">
+      <div className="w-full py-2 flex flex-col gap-6">
         <div className="w-full ">
           <div className="text-lg text-white mb-2">My Owned Projects</div>
           {myProjectsQuery.data.ownedProjects.length > 0 ? (

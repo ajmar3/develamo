@@ -1,15 +1,18 @@
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { useEffect, useRef, useState } from "react";
-import { useChatMessageStore } from "../stores/chat-message.store";
+import { useChatMessageStore } from "../../stores/chat-message.store";
 import Image from "next/image";
 import { useChatSocketStore } from "modules/sockets/chat.store";
 import { DirectMessageType } from "modules/common/types/chat.types";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
-export const DashChat: React.FC = () => {
+export const DashChatMessenger: React.FC = () => {
   const [newMessageInput, setNewMessageInput] = useState("");
   const [sendEnabled, setSendEnabled] = useState(true);
   const [messages, setMessages] = useState<DirectMessageType[]>([]);
   const scrollRef = useRef<any>(null);
+
+  const closeChat = useChatSocketStore(state => state.closeChat);
 
   const chatInfo = useChatMessageStore((state) => state.openChatInfo);
   const chatMessages = useChatMessageStore((state) => state.openChatMessages);
@@ -24,12 +27,15 @@ export const DashChat: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setMessages(chatMessages.reverse());
+    if (chatMessages) {
+      const temp = chatMessages.map(x => x);
+      setMessages(temp.reverse());
+    }
   }, [chatMessages]);
 
   useEffect(() => {
     if (scrollRef?.current) {
-      scrollRef.current.scrollIntoView({ behaviour: "smooth" });
+      scrollRef.current.scrollIntoView({ behaviour: "smooth", block: 'nearest', inline: 'start' });
     }
   }, [messages]);
 
@@ -67,44 +73,58 @@ export const DashChat: React.FC = () => {
 
   return (
     <div className="w-full h-full bg-base-200 shadow-md flex flex-col justify-between">
-      <div className="w-full bg-base-100 flex justify-end items-center gap-3 h-12 mb-2 px-3">
-        <div className="text-white">
-          {otherDeveloper?.name
-            ? otherDeveloper.name
-            : otherDeveloper?.githubUsername}
+      <div className="w-full flex bg-base-100 justify-between items-center h-12 px-3">
+        <button className="btn btn-sm" onClick={() => closeChat()}>
+          <ArrowLeftIcon className="w-4 h-4" />
+        </button>
+        <div className="flex items-center gap-3">
+          <div className="text-white">
+            {otherDeveloper?.name
+              ? otherDeveloper.name
+              : otherDeveloper?.githubUsername}
+          </div>
+          <Image
+            src={otherDeveloper?.avatarURL as string}
+            width={35}
+            height={35}
+            alt="profile-picture"
+            className="rounded-full border p-1"
+          />
         </div>
-        <Image
-          src={otherDeveloper?.avatarURL as string}
-          width={35}
-          height={35}
-          alt="profile-picture"
-          className="rounded-full border p-1"
-        />
       </div>
       <div className="h-[calc(100%-7.5rem)] w-full flex flex-col gap-3 overflow-y-scroll p-3">
         {messages.length > 0 ? (
           <>
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={
-                message.sender.id == developerId
-                  ? "w-full flex justify-end"
-                  : "w-full flex justify-start"
-              }
-            >
+            {messages.map((message) => (
               <div
+                key={message.id}
                 className={
                   message.sender.id == developerId
-                    ? "bg-primary text-white rounded-lg p-2 w-fit text-right"
-                    : "bg-base-100 text-white rounded-lg p-2"
+                    ? "chat chat-end"
+                    : "chat chat-start"
                 }
               >
-                {message.text}
+                <div className="chat-image avatar">
+                  <Image
+                    className="rounded-full"
+                    width={30}
+                    height={30}
+                    src={message.sender.avatarURL}
+                    alt="profile-pciture"
+                  />
+                </div>
+                <div
+                  className={
+                    message.sender.id == developerId
+                      ? "bg-primary chat-bubble"
+                      : "chat-bubble"
+                  }
+                >
+                  {message.text}
+                </div>
               </div>
-            </div>
-          ))}
-          <div ref={scrollRef}></div>
+            ))}
+            <div ref={scrollRef}></div>
           </>
         ) : (
           <div className="w-full h-full flex justify-center items-center">

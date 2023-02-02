@@ -14,7 +14,7 @@ import {
 } from "../hooks/useSearchMutation";
 import { useConnectionStore } from "../stores/connections.store";
 import { useChatMessageStore } from "../stores/chat-message.store";
-import { DashProjectCard } from "./project-card";
+import { DashProjectCard } from "./find/project-card";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
 

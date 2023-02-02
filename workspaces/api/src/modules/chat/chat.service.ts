@@ -259,6 +259,9 @@ export class ChatService {
           select: {
             id: true,
           },
+          orderBy: {
+            sentAt: "desc",
+          },
         },
       },
     });
