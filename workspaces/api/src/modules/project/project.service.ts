@@ -176,6 +176,30 @@ export class ProjectService {
           connect: connectRecord,
         },
         repoURL: model.repoURL,
+        chat: {
+          create: {},
+        },
+      },
+      select: {
+        id: true,
+        chat: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    await this.prismaService.projectChatChannel.create({
+      data: {
+        projectId: newProject.id,
+        chatId: newProject.chat.id,
+        name: "General",
+        participants: {
+          connect: {
+            id: developerId,
+          },
+        },
       },
     });
 

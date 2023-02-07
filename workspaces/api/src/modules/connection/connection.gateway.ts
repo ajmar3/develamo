@@ -79,7 +79,7 @@ export class ConnectionGateway implements OnGatewayDisconnect {
       data,
       client.user.id
     );
-    client.emit("connection-update", newConData);
+    client.emit("connection-request-response", newConData);
   }
 
   @SubscribeMessage("reject-request")
@@ -91,7 +91,7 @@ export class ConnectionGateway implements OnGatewayDisconnect {
       data,
       client.user.id
     );
-    client.emit("connection-update", newConData);
+    client.emit("connection-request-response", newConData);
   }
 
   @SubscribeMessage("apply-to-project")
