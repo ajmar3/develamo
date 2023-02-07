@@ -37,7 +37,7 @@ model Developer {
   projectLikes  ProjectLike[]
   sentDirectMessages  DirectMessage[]
   directMessageChat DirectMessageChat[]
-  projectChat ProjectChat[]
+  channels ProjectChatChannel[]
   sentProjectMessages  ProjectChatMessage[] @relation(name: "sentProjectMessages")
   seenProjectMessages  ProjectChatMessage[] @relation(name: "seenProjectMessages")
   projectApplications ProjectApplication[]
@@ -92,7 +92,7 @@ model Project {
   tags  Tag[]
   likes ProjectLike[]
   chat  ProjectChat?
-  chatId  String?  @unique
+  channels ProjectChatChannel[]
   repoURL  String?
   applications  ProjectApplication[]
 }
@@ -137,12 +137,23 @@ model DirectMessage {
   seen  Boolean
 }
 
-model ProjectChat {
+model ProjectChatChannel {
   id  String  @id @default(uuid())
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId String  @unique
-  participants  Developer[]
+  projectId String
+  participants Developer[]
   messages ProjectChatMessage[]
+  chat  ProjectChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId  String
+  createdAt  DateTime  @default(now())
+  name String
+}
+
+model ProjectChat {
+  id  String  @id @default(uuid())
+  project Project? @relation(fields: [projectId], references: [id])
+  projectId String  @unique
+  channels  ProjectChatChannel[]
 }
 
 model ProjectChatMessage {
@@ -150,8 +161,8 @@ model ProjectChatMessage {
   sender Developer @relation(fields: [senderId], references: [id], onDelete: Cascade, name: "sentProjectMessages")
   senderId String
   sentAt  DateTime  @default(now())
-  chat  ProjectChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  chatId String
+  channel  ProjectChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String
   text  String
   seenBy Developer[] @relation(name: "seenProjectMessages")
 }
