@@ -1,6 +1,6 @@
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
-import { useActionSocketStore } from "modules/sockets/connection.store";
+import { useConnectionSocketStore } from "modules/sockets/connection.store";
 import { useChatSocketStore } from "modules/sockets/chat.store";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -135,11 +135,11 @@ const PeopleActionButton: React.FC<{
   const connections = useConnectionStore((state) => state.connections);
   const requests = useConnectionStore((state) => state.connectionRequests);
   const sentRequests = useConnectionStore((state) => state.sentRequests);
-  const makeConRequest = useActionSocketStore((state) => state.sendConRequest);
-  const acceptConRequest = useActionSocketStore(
+  const makeConRequest = useConnectionSocketStore((state) => state.sendConRequest);
+  const acceptConRequest = useConnectionSocketStore(
     (state) => state.acceptConRequest
   );
-  const rejectConRequest = useActionSocketStore(
+  const rejectConRequest = useConnectionSocketStore(
     (state) => state.rejectConRequest
   );
   const chats = useChatMessageStore((state) => state.chats);

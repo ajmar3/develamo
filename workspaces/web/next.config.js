@@ -14,6 +14,11 @@ const nextConfig = {
         source: '/dash',
         destination: '/dash/find',
         permanent: true
+      },
+      {
+        source: '/project/:id',
+        destination: '/project/:id/chat',
+        permanent: true
       }
     ];
   }
