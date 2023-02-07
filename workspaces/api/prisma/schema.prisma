@@ -57,6 +57,8 @@ model Connection {
   createdAt DateTime  @default(now())
   connectionList ConnectionList @relation(fields: [connectListId], references: [id], onDelete: Cascade)
   connectListId  String
+  chat  DirectMessageChat @relation(fields: [chatId], references: [id])
+  chatId  String
 }
 
 model ConnectionRequest {
@@ -119,6 +121,7 @@ model ProjectApplication {
 model DirectMessageChat {
   id  String  @id @default(uuid())
   participants  Developer[]
+  participantsConnections Connection[]
   messages DirectMessage[]
   createdAt DateTime  @default(now())
 }

@@ -181,15 +181,28 @@ export class ConnectionService {
       },
     });
 
+    const chat = await this.prismaServie.directMessageChat.create({
+      data: {
+        participants: {
+          connect: [
+            { id: connectionList[0].developerId },
+            { id: connectionList[1].developerId },
+          ],
+        },
+      },
+    });
+
     await this.prismaServie.connection.createMany({
       data: [
         {
           developerId: connectionList[1].developerId,
           connectListId: connectionList[0].id,
+          chatId: chat.id,
         },
         {
           developerId: connectionList[0].developerId,
           connectListId: connectionList[1].id,
+          chatId: chat.id,
         },
       ],
     });
@@ -213,7 +226,7 @@ export class ConnectionService {
     });
 
     return {
-      connectionRequests: newConData.connectionRequests,
+      requests: newConData.connectionRequests,
       connections: newConData.connectionList.connections,
     };
   }
@@ -261,7 +274,7 @@ export class ConnectionService {
     });
 
     return {
-      connectionRequests: newConData.connectionRequests,
+      requests: newConData.connectionRequests,
       connections: newConData.connectionList.connections,
     };
   }

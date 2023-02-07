@@ -44,6 +44,11 @@ export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => 
     projectStore.setMyProjectApplications(data);
   });
 
+  socket.on("connection-request-response", (data) => {
+    connectStore.setConnections(data.connections);
+    connectStore.setConnectionRequests(data.requests);
+  });
+
   return {
     socket: socket,
     sendConRequest: (requestedId: string) => {
