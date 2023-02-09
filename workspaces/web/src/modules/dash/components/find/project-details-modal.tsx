@@ -51,7 +51,7 @@ export const ProjectDetailsModal: React.FC = () => {
       info.owner.id == developerId
     )
       return (
-        <Link href={"/project/" + info.id}>
+        <Link href={"/project/" + info.id + "/chat"}>
           <div className="modal-action">
             <label htmlFor="project-details-modal" className="btn btn-primary">
               Go To Project
