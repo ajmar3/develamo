@@ -1,32 +1,41 @@
-import { useConnectionSocketStore } from "modules/sockets/connection.store";
 import { useEffect } from "react";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
-import { useChatSocketStore } from "modules/sockets/chat.store";
 import { ProjectNavBar } from "./nav-bar";
+import { useProjectSocketStore } from "../stores/project-socket.store";
+import { useProjectAuthStore } from "modules/auth/store/project-auth-store";
+import { useProjectBaseStore } from "../stores/project-base.store";
+import { LoadingSpinner } from "modules/common/components/loading-spinner";
 
 export type ProjectLayoutPropsType = {
   children: React.ReactNode;
 };
 
 export const ProjectLayout: React.FC<ProjectLayoutPropsType> = (props) => {
-  const connectionSocket = useConnectionSocketStore();
-  const chatSocket = useChatSocketStore();
+  const initProjectSocket = useProjectSocketStore((state) => state.initSocket);
 
-  const developerId = useDevAuthStore((state) => state.devInfo?.id);
+  const developerId = useProjectAuthStore((state) => state.devInfo?.id);
+  const projectId = useProjectAuthStore((state) => state.projectInfo?.id);
+  const projectInfo = useProjectBaseStore((state) => state.projectInfo);
 
   useEffect(() => {
-    if (developerId) {
-      connectionSocket.initSocket(developerId);
-      chatSocket.initSocket(developerId);
+    if (developerId && projectId) {
+      initProjectSocket({ developerId: developerId, projectId: projectId });
     }
-  }, [, developerId]);
+  }, [, developerId, projectId]);
+
+  if (!projectInfo) {
+    return (
+      <div className="w-screen h-screen flex justify-center items-center">
+        <LoadingSpinner size="medium" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-screen h-screen flex flex-col items-center bg-base-300  relative">
       <ProjectNavBar />
-      <div className="max-w-8xl w-full flex p-3 gap-4 h-full overflow-y-scroll">
-        <div className="w-3/4 h-96 bg-green-500">{props.children}</div>
-        <div className="w-1/4 h-96 flex flex-col gap-3 sticky top-0 bg-blue-400"></div>
+      <div className="max-w-8xl w-full flex flex-1 p-3 gap-4 overflow-y-scroll">
+        <div className="w-full h-full">{props.children}</div>
       </div>
     </div>
   );

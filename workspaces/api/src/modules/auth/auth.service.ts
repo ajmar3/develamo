@@ -130,7 +130,7 @@ export class AuthService {
   async verifyUserForProject(developerId: string, projectId: string) {
     const developer = await this.developerService.getDeveloperById(developerId);
 
-    const project = await this.projectService.getProjectById(
+    const project = await this.projectService.getProjectInfoById(
       projectId,
       developer.id
     );
@@ -139,5 +139,12 @@ export class AuthService {
       developer: developer,
       project: project,
     };
+  }
+
+  async userProjectCheck(developerId: string, projectId: string) {
+    const project = await this.projectService.getProjectInfoById(
+      projectId,
+      developerId
+    );
   }
 }

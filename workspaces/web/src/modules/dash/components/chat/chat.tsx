@@ -1,7 +1,7 @@
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
 import { ChatListDMType } from "modules/common/types/chat.types";
-import { useChatSocketStore } from "modules/sockets/chat.store";
+import { useChatSocketStore } from "modules/dash/stores/chat-socket.store";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useChatMessageStore } from "../../stores/chat-message.store";

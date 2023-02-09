@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Link from "next/link";
 import { useProjectStrore } from "../../stores/project.store";
-import { useConnectionSocketStore } from "modules/sockets/connection.store";
+import { useConnectionSocketStore } from "modules/dash/stores/connection-socket.store";
 
 export const ProjectDetailsModal: React.FC = () => {
   const info = useProjectDetailsStore((state) => state.projectInfo);

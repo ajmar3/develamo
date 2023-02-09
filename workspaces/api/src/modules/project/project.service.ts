@@ -6,7 +6,12 @@ import {
 import { Developer } from "@prisma/client";
 import { CreateProjectApplicationDto } from "../connection/connection.dtos";
 import { PrismaService } from "../database/prisma.service";
-import { CreateProjectDto, ProjectFeedDto } from "./project.dtos";
+import {
+  CreateChannelDto,
+  CreateChannelMessageDto,
+  CreateProjectDto,
+  ProjectFeedDto,
+} from "./project.dtos";
 
 @Injectable()
 export class ProjectService {
@@ -200,18 +205,86 @@ export class ProjectService {
             id: developerId,
           },
         },
+        admins: {
+          connect: {
+            id: developerId,
+          },
+        },
       },
     });
 
     return newProject.id;
   }
 
-  async getProjectById(projectId: string, developerId: string) {
+  async getProjectInfoById(projectId: string, developerId: string) {
     const project = await this.prismaService.project.findFirst({
       where: {
         id: projectId,
       },
       select: {
+        id: true,
+        title: true,
+        chat: {
+          select: {
+            id: true,
+            channels: {
+              select: {
+                id: true,
+                name: true,
+                createdAt: true,
+                participants: {
+                  select: {
+                    id: true,
+                    githubUsername: true,
+                    name: true,
+                    avatarURL: true,
+                  },
+                },
+                admins: {
+                  select: {
+                    id: true,
+                    githubUsername: true,
+                    name: true,
+                    avatarURL: true,
+                  },
+                },
+                messages: {
+                  select: {
+                    channelId: true,
+                    sentAt: true,
+                    sender: {
+                      select: {
+                        id: true,
+                        githubUsername: true,
+                        name: true,
+                        avatarURL: true,
+                      },
+                    },
+                    seenBy: {
+                      select: {
+                        id: true,
+                      },
+                    },
+                  },
+                  orderBy: {
+                    sentAt: "desc",
+                  },
+                  take: 1,
+                },
+              },
+              orderBy: {
+                createdAt: "asc",
+              },
+              where: {
+                participants: {
+                  some: {
+                    id: developerId,
+                  },
+                },
+              },
+            },
+          },
+        },
         developers: {
           select: {
             id: true,
@@ -285,5 +358,285 @@ export class ProjectService {
     });
 
     return newApplication;
+  }
+
+  async createChannel(developerId: string, data: CreateChannelDto) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: data.projectId,
+      },
+      select: {
+        ownerId: true,
+        chat: {
+          select: {
+            id: true,
+            channels: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (project.chat.channels.map((x) => x.name).includes(data.name)) {
+      throw new BadRequestException("Chat with that name already exists");
+    }
+
+    if (project.ownerId == developerId) {
+      const newChannel = await this.prismaService.projectChatChannel.create({
+        data: {
+          projectId: data.projectId,
+          chatId: project.chat.id,
+          name: data.name,
+          participants: {
+            connect: {
+              id: developerId,
+            },
+          },
+          admins: {
+            connect: {
+              id: developerId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          participants: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          admins: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          messages: {
+            select: {
+              sentAt: true,
+              sender: {
+                select: {
+                  id: true,
+                  githubUsername: true,
+                  name: true,
+                  avatarURL: true,
+                },
+              },
+              seenBy: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+            orderBy: {
+              sentAt: "desc",
+            },
+            take: 1,
+          },
+        },
+      });
+      return newChannel;
+    } else {
+      const newChannel = await this.prismaService.projectChatChannel.create({
+        data: {
+          projectId: data.projectId,
+          chatId: project.chat.id,
+          name: data.name,
+          participants: {
+            connect: [
+              {
+                id: developerId,
+              },
+              {
+                id: project.ownerId,
+              },
+            ],
+          },
+          admins: {
+            connect: [
+              {
+                id: developerId,
+              },
+              {
+                id: project.ownerId,
+              },
+            ],
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          participants: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          admins: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          messages: {
+            select: {
+              sentAt: true,
+              sender: {
+                select: {
+                  id: true,
+                  githubUsername: true,
+                  name: true,
+                  avatarURL: true,
+                },
+              },
+              seenBy: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+            orderBy: {
+              sentAt: "desc",
+            },
+            take: 1,
+          },
+        },
+      });
+
+      return newChannel;
+    }
+  }
+
+  async openChannel(developerId: string, channelId: string) {
+    const channel = await this.prismaService.projectChatChannel.findFirst({
+      where: {
+        id: channelId,
+      },
+      select: {
+        id: true,
+        name: true,
+        participants: {
+          select: {
+            id: true,
+            githubUsername: true,
+            name: true,
+            avatarURL: true,
+          },
+        },
+        admins: {
+          select: {
+            id: true,
+            githubUsername: true,
+            name: true,
+            avatarURL: true,
+          },
+        },
+        messages: {
+          select: {
+            id: true,
+            sentAt: true,
+            sender: {
+              select: {
+                id: true,
+                githubUsername: true,
+                name: true,
+                avatarURL: true,
+              },
+            },
+            seenBy: {
+              select: {
+                id: true,
+              },
+            },
+            text: true,
+          },
+          orderBy: {
+            sentAt: "desc",
+          },
+        },
+      },
+    });
+
+    if (!channel) {
+      throw new BadRequestException("Could not find that channel");
+    }
+
+    if (!channel.participants.some((x) => x.id == developerId)) {
+      throw new UnauthorizedException("You do not have access to that channel");
+    }
+
+    return channel;
+  }
+
+  async createMessage(developerId: string, data: CreateChannelMessageDto) {
+    const channel = await this.prismaService.projectChatChannel.findFirst({
+      where: {
+        id: data.channelId,
+      },
+      select: {
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!channel) throw new BadRequestException("Could not find channel");
+
+    if (!channel.participants.some((x) => x.id == developerId)) {
+      throw new UnauthorizedException("You do not have access to this channel");
+    }
+
+    const newMessage = await this.prismaService.projectChatMessage.create({
+      data: {
+        senderId: developerId,
+        seenBy: {
+          connect: {
+            id: developerId,
+          },
+        },
+        text: data.text,
+        channelId: data.channelId,
+      },
+      select: {
+        id: true,
+        channelId: true,
+        text: true,
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            githubUsername: true,
+            avatarURL: true,
+          },
+        },
+        sentAt: true,
+        seenBy: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    return {
+      message: newMessage,
+      participants: channel.participants,
+    };
   }
 }

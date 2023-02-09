@@ -1,10 +1,10 @@
 import { DashNotifications } from "./notifications";
-import { useConnectionSocketStore } from "modules/sockets/connection.store";
 import { useEffect } from "react";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { DashNavBar } from "./nav-bar";
-import { useChatSocketStore } from "modules/sockets/chat.store";
 import { DashChat } from "./chat/chat";
+import { useConnectionSocketStore } from "../stores/connection-socket.store";
+import { useChatSocketStore } from "../stores/chat-socket.store";
 
 export type DashLayoutPropsType = {
   children: React.ReactNode

@@ -1,7 +1,5 @@
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { LoadingSpinner } from "modules/common/components/loading-spinner";
-import { useConnectionSocketStore } from "modules/sockets/connection.store";
-import { useChatSocketStore } from "modules/sockets/chat.store";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAcceptConnectionMutation } from "../hooks/useAcceptConnectionMutation";
@@ -17,6 +15,8 @@ import { useChatMessageStore } from "../stores/chat-message.store";
 import { DashProjectCard } from "./find/project-card";
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
+import { useConnectionSocketStore } from "../stores/connection-socket.store";
+import { useChatSocketStore } from "../stores/chat-socket.store";
 
 export const DashSearchResults: React.FC<{
   search: string;

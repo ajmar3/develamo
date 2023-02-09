@@ -27,3 +27,19 @@ export class CreateProjectDto {
   @ValidateIf((object, value) => value != null || value != undefined)
   repoURL: string;
 }
+
+export class CreateChannelDto {
+  @IsString()
+  projectId: string;
+
+  @IsString()
+  name: string;
+}
+
+export class CreateChannelMessageDto {
+  @IsString()
+  channelId: string;
+
+  @IsString()
+  text: string;
+}

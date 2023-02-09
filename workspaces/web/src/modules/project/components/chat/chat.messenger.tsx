@@ -1,25 +1,24 @@
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { useEffect, useRef, useState } from "react";
-import { useChatMessageStore } from "../../stores/chat-message.store";
 import Image from "next/image";
 import { DirectMessageType } from "modules/common/types/chat.types";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { useChatSocketStore } from "modules/dash/stores/chat-socket.store";
+import { ArrowLeftIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import { ProjectChatMessageType } from "modules/project/types/chat-types";
+import { useProjectBaseStore } from "modules/project/stores/project-base.store";
+import { useProjectAuthStore } from "modules/auth/store/project-auth-store";
+import { useProjectSocketStore } from "modules/project/stores/project-socket.store";
 
-export const DashChatMessenger: React.FC = () => {
+export const ProjectChatMessenger: React.FC = () => {
   const [newMessageInput, setNewMessageInput] = useState("");
   const [sendEnabled, setSendEnabled] = useState(true);
-  const [messages, setMessages] = useState<DirectMessageType[]>([]);
+  const [messages, setMessages] = useState<ProjectChatMessageType[]>([]);
   const scrollRef = useRef<any>(null);
 
-  const closeChat = useChatSocketStore(state => state.closeChat);
+  const channelInfo = useProjectBaseStore((state) => state.activeChannelInfo);
+  const developerId = useProjectAuthStore((state) => state.devInfo?.id);
 
-  const chatInfo = useChatMessageStore((state) => state.openChatInfo);
-  const chatMessages = useChatMessageStore((state) => state.openChatMessages);
-  const developerId = useDevAuthStore((state) => state.devInfo?.id as string);
-
-  const createMessage = useChatSocketStore(
-    (state) => state.createDirectMessage
+  const createMessage = useProjectSocketStore(
+    (state) => state.createMessage
   );
 
   useEffect(() => {
@@ -27,17 +26,21 @@ export const DashChatMessenger: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (chatMessages) {
-      const temp = chatMessages.map(x => x);
+    if (channelInfo) {
+      const temp = channelInfo.messages.map(x => x);
       setMessages(temp.reverse());
     }
-  }, [chatMessages]);
+  }, [channelInfo?.messages]);
 
   useEffect(() => {
     if (scrollRef?.current) {
-      scrollRef.current.scrollIntoView({ behaviour: "smooth", block: 'nearest', inline: 'start' });
+      scrollRef.current.scrollIntoView({
+        behaviour: "smooth",
+        block: "nearest",
+        inline: "start",
+      });
     }
-  }, [messages]);
+  }, [channelInfo?.messages]);
 
   useEffect(() => {
     if (sendEnabled == false) {
@@ -47,14 +50,16 @@ export const DashChatMessenger: React.FC = () => {
     }
   }, [sendEnabled]);
 
-  if (!chatInfo)
+  if (!channelInfo)
     return (
       <div className="w-full h-full bg-base-200 shadow-md flex justify-center items-center">
         Open a chat to get started!
       </div>
     );
 
-  const otherDeveloper = chatInfo.participants.find((x) => x.id != developerId);
+  const otherDeveloper = channelInfo.participants.find(
+    (x) => x.id != developerId
+  );
 
   const sendMessage = () => {
     if (!newMessageInput) return;
@@ -62,7 +67,7 @@ export const DashChatMessenger: React.FC = () => {
       return;
     }
     createMessage({
-      chatId: chatInfo.id,
+      channelId: channelInfo.id,
       text: newMessageInput,
     });
     setSendEnabled(false);
@@ -72,26 +77,25 @@ export const DashChatMessenger: React.FC = () => {
   return (
     <div className="w-full h-full bg-base-200 shadow-md flex flex-col justify-between">
       <div className="w-full flex bg-base-100 justify-between items-center h-12 px-3">
-        <button className="btn btn-sm" onClick={() => closeChat()}>
-          <ArrowLeftIcon className="w-4 h-4" />
-        </button>
         <div className="flex items-center gap-3">
-          <div className="text-white">
-            {otherDeveloper?.name
-              ? otherDeveloper.name
-              : otherDeveloper?.githubUsername}
+          <div className="text-white text-lg">{channelInfo.name}</div>
+          <div className="flex items-center gap-1">
+            {channelInfo.participants.map((x) => (
+              <Image
+                key={x.id}
+                src={x.avatarURL}
+                width={40}
+                height={40}
+                alt="profile-picture"
+                className="rounded-full border p-1"
+              />
+            ))}
           </div>
-          <Image
-            src={otherDeveloper?.avatarURL as string}
-            width={35}
-            height={35}
-            alt="profile-picture"
-            className="rounded-full border p-1"
-          />
         </div>
+        <EllipsisVerticalIcon className="w-8 h-8 cursor-pointer" />
       </div>
       <div className="h-[calc(100%-7.5rem)] w-full flex flex-col gap-3 overflow-y-scroll p-3">
-        {messages.length > 0 ? (
+        {channelInfo.messages.length > 0 ? (
           <>
             {messages.map((message) => (
               <div

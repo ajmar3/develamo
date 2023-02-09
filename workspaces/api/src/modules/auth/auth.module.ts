@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { ConnectionModule } from "../connection/connection.module";
+import { DatabaseModule } from "../database/database.module";
 import { DeveloperModule } from "../developer/developer.module";
 import { ProjectModule } from "../project/project.module";
 import { AuthController } from "./auth.controller";
@@ -22,6 +23,7 @@ import { JwtStrategy } from "./jwt.strategy";
       signOptions: { expiresIn: process.env.JWT_EXPIRY_TIME },
     }),
     ProjectModule,
+    DatabaseModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

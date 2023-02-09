@@ -37,7 +37,8 @@ model Developer {
   projectLikes  ProjectLike[]
   sentDirectMessages  DirectMessage[]
   directMessageChat DirectMessageChat[]
-  channels ProjectChatChannel[]
+  channels ProjectChatChannel[] @relation(name: "channelParticipants")
+  channelsAsAdmin ProjectChatChannel[]  @relation(name: "channelAdmins")
   sentProjectMessages  ProjectChatMessage[] @relation(name: "sentProjectMessages")
   seenProjectMessages  ProjectChatMessage[] @relation(name: "seenProjectMessages")
   projectApplications ProjectApplication[]
@@ -141,7 +142,8 @@ model ProjectChatChannel {
   id  String  @id @default(uuid())
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String
-  participants Developer[]
+  participants Developer[]  @relation(name: "channelParticipants")
+  admins  Developer[] @relation(name: "channelAdmins")
   messages ProjectChatMessage[]
   chat  ProjectChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
   chatId  String

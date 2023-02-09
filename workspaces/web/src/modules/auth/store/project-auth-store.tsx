@@ -10,6 +10,7 @@ export interface IDevAuthStore {
     avatarURL: string
   },
   projectInfo?: {
+    id: string
     developers: {
       id: string;
       githubUsername: string;
