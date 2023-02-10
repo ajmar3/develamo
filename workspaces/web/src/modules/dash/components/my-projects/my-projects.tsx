@@ -16,6 +16,8 @@ export const DashMyProjects: React.FC = () => {
       </div>
     );
 
+  console.log(myProjectsQuery.data);
+
   return (
     <div className="w-full flex flex-col gap-3 h-full overflow-y-scroll">
       <div className="w-full py-2 flex flex-col gap-6">
@@ -34,11 +36,12 @@ export const DashMyProjects: React.FC = () => {
                     <div className="flex gap-1 max-w-full overflow-x-hidden">
                       {project.developers.map((dev) => (
                         <Image
-                          src={dev.avatarUrl}
+                          src={dev.avatarURL}
                           width={40}
                           height={40}
                           alt={dev.githubUsername}
                           key={dev.id}
+                          className="rounded-full border p-1"
                         />
                       ))}
                     </div>
@@ -66,7 +69,7 @@ export const DashMyProjects: React.FC = () => {
             <div className="grid grid-cols-2 gap-2">
               {myProjectsQuery.data.projects.map((project) => (
                 <Link
-                  href={"#"}
+                  href={"/project/"+project.id+"/chat"}
                   key={project.id}
                   className="bg-base-100 rounded-md w-full h-32 p-3 cursor-pointer hover:shadow-md flex flex-col justify-between"
                 >
@@ -75,11 +78,12 @@ export const DashMyProjects: React.FC = () => {
                     <div className="flex gap-1 max-w-full overflow-x-hidden">
                       {project.developers.map((dev) => (
                         <Image
-                          src={dev.avatarUrl}
+                          src={dev.avatarURL}
                           width={40}
                           height={40}
                           alt={dev.githubUsername}
                           key={dev.id}
+                          className="rounded-full border p-1"
                         />
                       ))}
                     </div>

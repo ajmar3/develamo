@@ -20,7 +20,7 @@ export type ProjectType = {
   developers: {
     id: string
     name: string
-    avatarUrl: string
+    avatarURL: string
     githubUsername: string
   }[]
   likes: {
@@ -29,7 +29,7 @@ export type ProjectType = {
   owner: {
     id: string
     name: string
-    avatarUrl: string
+    avatarURL: string
     githubUsername: string
   }
 }
@@ -48,7 +48,7 @@ export type OwnedProjectType = {
   developers: {
     id: string
     name: string
-    avatarUrl: string
+    avatarURL: string
     githubUsername: string
   }[]
   likes: {

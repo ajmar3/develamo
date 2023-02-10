@@ -805,7 +805,7 @@ export class ProjectService {
       throw new UnauthorizedException("You do not own that project");
     }
 
-    if (!application.resolved) {
+    if (application.resolved) {
       throw new BadRequestException("Application has been resolved");
     }
 
