@@ -14,6 +14,7 @@ export interface IProjectStore {
   activeChannelId?: string;
   setActiveChannelId: (newId: string) => void;
   setActiveChannelInfo: (newInfo?: ProjectChatChannelType) => void;
+  activeChannelMessages: ProjectChatMessageType[];
   setActiveChannelMessages: (newMessages: ProjectChatMessageType[]) => void;
   addActiveChannelMessage: (newMessage: ProjectChatMessageType) => void;
 }
@@ -51,28 +52,31 @@ export const useProjectBaseStore = create<IProjectStore>((set) => {
     setActiveChannelId: (newId: string) => set(state => ({ activeChannelId: newId })),
     setActiveChannelInfo: (newInfo: any) =>
       set((state) => ({ activeChannelInfo: newInfo })),
+      activeChannelMessages: [],
     setActiveChannelMessages: (newMessages: any[]) =>
       set((state) => {
-        const info = state.activeChannelInfo;
-        if (info) {
-          info.messages = newMessages;
-        }
-        return { activeChannelInfo: info };
-      }),
-    addActiveChannelMessage: (newMessage: ProjectChatMessageType) => set(state => {
-      const currentState = state.activeChannelInfo;
-      if (currentState) {
-        const updatedMessages = currentState.messages.map(x => x);
-        updatedMessages.push(newMessage);
-        updatedMessages?.sort((a: ProjectChatMessageType, b: ProjectChatMessageType) => {
+        newMessages.sort((a: ProjectChatMessageType, b: ProjectChatMessageType) => {
           return (
             new Date(a.sentAt).valueOf() -
             new Date(b.sentAt).valueOf()
           );
         });
-        currentState.messages = updatedMessages;
+        return { activeChannelMessages: newMessages };
+      }),
+    addActiveChannelMessage: (newMessage: ProjectChatMessageType) => set(state => {
+      if (newMessage.channelId != state.activeChannelId) {
+        return ({ activeChannelMessages: state.activeChannelMessages });
       }
-      return ({ activeChannelInfo: currentState });
+      const currentState = state.activeChannelMessages;
+      const updatedMessages = currentState.map(x => x);
+      updatedMessages.push(newMessage);
+      updatedMessages.sort((a: ProjectChatMessageType, b: ProjectChatMessageType) => {
+        return (
+          new Date(a.sentAt).valueOf() -
+          new Date(b.sentAt).valueOf()
+        );
+      });
+      return ({ activeChannelMessages: updatedMessages });
     })
   };
 });

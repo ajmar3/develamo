@@ -41,6 +41,8 @@ export type ProjectChatMessageType = {
 export type ProjectInfoType = {
   id: string,
   title: string,
+  description: string,
+  repoURL: string,
   chat: ChatInfoType,
   developers: {
     id: string;
@@ -54,4 +56,16 @@ export type ProjectInfoType = {
     name: string;
     avatarURL: string;
   }
+}
+
+export type ProjectApplicationType = {
+  id: string;
+  createdAt: string;
+  requester: {
+      id: string;
+      name: string;
+      githubUsername: string;
+      avatarURL: string;
+      bio?: string
+  };
 }

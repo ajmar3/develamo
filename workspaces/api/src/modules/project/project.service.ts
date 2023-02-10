@@ -224,6 +224,8 @@ export class ProjectService {
       select: {
         id: true,
         title: true,
+        description: true,
+        repoURL: true,
         chat: {
           select: {
             id: true,
@@ -638,5 +640,186 @@ export class ProjectService {
       message: newMessage,
       participants: channel.participants,
     };
+  }
+
+  async getProjectApplications(developerId: string, projectId: string) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: projectId,
+      },
+      select: {
+        ownerId: true,
+        applications: {
+          select: {
+            id: true,
+            createdAt: true,
+            requester: {
+              select: {
+                avatarURL: true,
+                githubUsername: true,
+                id: true,
+                name: true,
+                bio: true,
+              },
+            },
+          },
+          where: {
+            resolved: false,
+          },
+        },
+      },
+    });
+
+    if (!project) throw new BadRequestException("Could not find that project");
+
+    if (project.ownerId != developerId) {
+      throw new UnauthorizedException("You do not have access to this project");
+    }
+
+    return project.applications;
+  }
+
+  async acceptApplication(developerId: string, applicationId: string) {
+    const application = await this.prismaService.projectApplication.findFirst({
+      where: {
+        id: applicationId,
+      },
+      select: {
+        id: true,
+        resolved: true,
+        project: {
+          select: {
+            id: true,
+            ownerId: true,
+          },
+        },
+        requesterId: true,
+      },
+    });
+    if (!application) {
+      throw new BadRequestException("Could not find that application");
+    }
+
+    if (application.project.ownerId != developerId) {
+      throw new UnauthorizedException("You do not own that project");
+    }
+
+    if (application.resolved) {
+      throw new BadRequestException("Application has been resolved");
+    }
+
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: application.project.id,
+      },
+      select: {
+        developers: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (project.developers.some((x) => x.id == developerId)) {
+      throw new BadRequestException("Developer already in project.");
+    }
+
+    await this.prismaService.project.update({
+      where: {
+        id: application.project.id,
+      },
+      data: {
+        developers: {
+          connect: [...project.developers, { id: application.requesterId }],
+        },
+      },
+    });
+
+    await this.prismaService.projectApplication.update({
+      where: {
+        id: applicationId,
+      },
+      data: {
+        resolved: true,
+        resolvedAt: new Date(),
+        successful: true,
+      },
+    });
+
+    const generalChannel =
+      await this.prismaService.projectChatChannel.findFirst({
+        where: {
+          projectId: application.project.id,
+          name: "General",
+        },
+        select: {
+          id: true,
+          participants: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    await this.prismaService.projectChatChannel.update({
+      where: {
+        id: generalChannel.id,
+      },
+      data: {
+        participants: {
+          connect: [
+            ...generalChannel.participants,
+            { id: application.requesterId },
+          ],
+        },
+      },
+    });
+
+    return application.project.id;
+  }
+
+  async rejectApplication(developerId: string, applicationId: string) {
+    const application = await this.prismaService.projectApplication.findFirst({
+      where: {
+        id: applicationId,
+      },
+      select: {
+        id: true,
+        resolved: true,
+        project: {
+          select: {
+            id: true,
+            ownerId: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new BadRequestException("Could not find that application");
+    }
+
+    if (application.project.ownerId != developerId) {
+      throw new UnauthorizedException("You do not own that project");
+    }
+
+    if (!application.resolved) {
+      throw new BadRequestException("Application has been resolved");
+    }
+
+    await this.prismaService.projectApplication.update({
+      where: {
+        id: applicationId,
+      },
+      data: {
+        resolved: true,
+        resolvedAt: new Date(),
+        successful: false,
+      },
+    });
+
+    return application.project.id;
   }
 }

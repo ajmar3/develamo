@@ -94,19 +94,6 @@ export class ConnectionGateway implements OnGatewayDisconnect {
     client.emit("connection-request-response", newConData);
   }
 
-  @SubscribeMessage("apply-to-project")
-  async applyToProject(
-    client: IValidatedSocket,
-    data: CreateProjectApplicationDto
-  ) {
-    const newApplication = await this.projectService.createProjectApplication(
-      data,
-      client.user.id
-    );
-
-    client.emit("new-application", newApplication);
-  }
-
   @SubscribeMessage("connected")
   async handleWebsocketConnect(
     client: IValidatedSocket,

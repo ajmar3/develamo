@@ -4,6 +4,7 @@ import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Link from "next/link";
 import { useProjectStrore } from "../../stores/project.store";
 import { useConnectionSocketStore } from "modules/dash/stores/connection-socket.store";
+import { useDashProjectSocketStore } from "modules/dash/stores/project-socket.store";
 
 export const ProjectDetailsModal: React.FC = () => {
   const info = useProjectDetailsStore((state) => state.projectInfo);
@@ -11,7 +12,7 @@ export const ProjectDetailsModal: React.FC = () => {
   const projectApplications = useProjectStrore(
     (state) => state.myProjectApplications
   );
-  const applyToJoinProject = useConnectionSocketStore(state => state.applyToJoinProject);
+  const applyToJoinProject = useDashProjectSocketStore(state => state.applyToJoinProject);
 
   if (!info)
     return (

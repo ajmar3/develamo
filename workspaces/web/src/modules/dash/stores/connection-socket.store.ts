@@ -10,7 +10,6 @@ export interface IConnectionSocketStore {
   sendConRequest: (requestedId: string) => void;
   acceptConRequest: (requestId: string) => void;
   rejectConRequest: (requestId: string) => void;
-  applyToJoinProject: (projectId: string) => void;
   initSocket: (developerId: string) => void
 }
 
@@ -36,14 +35,6 @@ export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => 
     connectStore.addSentRequest(data);
   });
 
-  socket.on("new-application", (data: ProjectApplicationType) => {
-    projectStore.addProjectApplication(data);
-  });
-
-  socket.on("project-aplication-update", (data: ProjectApplicationType[]) => {
-    projectStore.setMyProjectApplications(data);
-  });
-
   socket.on("connection-request-response", (data) => {
     connectStore.setConnections(data.connections);
     connectStore.setConnectionRequests(data.requests);
@@ -65,9 +56,6 @@ export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => 
       socket.emit("reject-request", {
         requestId: requestId
       });
-    },
-    applyToJoinProject: (projectid: string) => {
-      socket.emit("apply-to-project", { projectId: projectid })
     },
     initSocket: (developerId: any) => {
       socket.emit("connected", {

@@ -6,6 +6,7 @@ import {
 } from "@nestjs/websockets";
 import { Server } from "socket.io";
 import { WsGuard } from "../auth/ws.guard";
+import { CreateProjectApplicationDto } from "../connection/connection.dtos";
 import { IValidatedSocket } from "../sockets/socket.interfaces";
 import { ConnectProjectWebsocketDto } from "../sockets/sockets.dtos";
 import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
@@ -72,5 +73,67 @@ export class ProjectGateway {
       // we do this so we only emit the message to those who have access
       this.server.to(x.id).emit("new-message", newMessageInfo.message);
     });
+  }
+
+  @SubscribeMessage("apply-to-project")
+  async applyToProject(
+    client: IValidatedSocket,
+    data: CreateProjectApplicationDto
+  ) {
+    const newApplication = await this.projectService.createProjectApplication(
+      data,
+      client.user.id
+    );
+
+    client.emit("new-application", newApplication);
+  }
+
+  @SubscribeMessage("get-project-applications")
+  async getProjectApplications(client: IValidatedSocket, projectId: string) {
+    const applications = await this.projectService.getProjectApplications(
+      client.user.id,
+      projectId
+    );
+
+    client.emit("project-application-updates", applications);
+  }
+
+  @SubscribeMessage("accept-project-application")
+  async acceptProjectApplication(
+    client: IValidatedSocket,
+    applicationId: string
+  ) {
+    const projectId = await this.projectService.acceptApplication(
+      client.user.id,
+      applicationId
+    );
+    const newApplicationInfo = await this.projectService.getProjectApplications(
+      client.user.id,
+      projectId
+    );
+    const info = await this.projectService.getProjectInfoById(
+      projectId,
+      client.user.id
+    );
+
+    client.emit("project-application-updates", newApplicationInfo);
+    this.server.to(projectId).emit("project-info", info);
+  }
+
+  @SubscribeMessage("reject-project-application")
+  async rejectProjectApplication(
+    client: IValidatedSocket,
+    applicationId: string
+  ) {
+    const projectId = await this.projectService.rejectApplication(
+      client.user.id,
+      applicationId
+    );
+    const newApplicationInfo = await this.projectService.getProjectApplications(
+      client.user.id,
+      projectId
+    );
+
+    client.emit("project-application-updates", newApplicationInfo);
   }
 }

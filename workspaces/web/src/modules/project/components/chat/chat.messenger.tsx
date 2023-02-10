@@ -1,5 +1,5 @@
 import { useDevAuthStore } from "modules/auth/store/auth-store";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { DirectMessageType } from "modules/common/types/chat.types";
 import { ArrowLeftIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
@@ -15,6 +15,7 @@ export const ProjectChatMessenger: React.FC = () => {
   const scrollRef = useRef<any>(null);
 
   const channelInfo = useProjectBaseStore((state) => state.activeChannelInfo);
+  const channelMessages = useProjectBaseStore((state) => state.activeChannelMessages);
   const developerId = useProjectAuthStore((state) => state.devInfo?.id);
 
   const createMessage = useProjectSocketStore(
@@ -26,13 +27,6 @@ export const ProjectChatMessenger: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (channelInfo) {
-      const temp = channelInfo.messages.map(x => x);
-      setMessages(temp.reverse());
-    }
-  }, [channelInfo?.messages]);
-
-  useEffect(() => {
     if (scrollRef?.current) {
       scrollRef.current.scrollIntoView({
         behaviour: "smooth",
@@ -40,7 +34,7 @@ export const ProjectChatMessenger: React.FC = () => {
         inline: "start",
       });
     }
-  }, [channelInfo?.messages]);
+  }, [channelMessages]);
 
   useEffect(() => {
     if (sendEnabled == false) {
@@ -97,7 +91,7 @@ export const ProjectChatMessenger: React.FC = () => {
       <div className="h-[calc(100%-7.5rem)] w-full flex flex-col gap-3 overflow-y-scroll p-3">
         {channelInfo.messages.length > 0 ? (
           <>
-            {messages.map((message) => (
+            {channelMessages.map((message) => (
               <div
                 key={message.id}
                 className={
