@@ -20,7 +20,7 @@ export const ProjectNavBar = () => {
     <div className="w-full bg-base-200 flex flex-col items-center sticky top-0 shadow-md">
       <Link
         href={"/dash/find"}
-        className="max-w-8xl w-full flex justify-between px-4 py-3"
+        className="max-w-8xl w-full flex justify-between px-4 py-2"
       >
         <Image
           src={"/images/DEVELAMO ELEPHANT WHT.png"}
@@ -32,7 +32,7 @@ export const ProjectNavBar = () => {
       <div className="w-full max-w-8xl px-3">
         <div className="w-full border-b border-base-content"></div>
       </div>
-      <div className="max-w-8xl w-full flex gap-3 px-4 py-3">
+      <div className="max-w-8xl w-full flex gap-3 px-4 py-2">
         <Link
           href={routerPath + "/chat"}
           className={route == "chat" ? "btn btn-sm btn-primary" : "btn btn-sm"}

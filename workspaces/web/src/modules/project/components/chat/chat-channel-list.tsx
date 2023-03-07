@@ -21,8 +21,8 @@ export const ChatChannelList: React.FC = () => {
 
   return (
     <div className="w-full h-full">
-      <div className="h-12 px-2 border-b flex justify-center">
-        <div className="h-full w-full text-xl flex items-center mx-3 text-white whitespace-nowrap overflow-hidden">
+      <div className="py-2 px-2 border-b flex justify-center mb-2">
+        <div className="h-full w-full text-lg flex items-center mx-3 text-white whitespace-nowrap overflow-hidden">
           {projectTitle}
         </div>
       </div>
@@ -35,8 +35,8 @@ export const ChatChannelList: React.FC = () => {
                 key={channel.id}
                 className={
                   activeChannel
-                    ? "w-full py-3 bg-base-100 cursor-pointer flex items-center text-lg px-5 gap-2 text-white"
-                    : "w-full py-3 hover:bg-base-100 cursor-pointer flex items-center text-lg px-5 gap-2"
+                    ? "w-full py-3 bg-base-100 cursor-pointer flex items-center px-5 gap-2 text-white rounded-md mb-1"
+                    : "w-full py-3 hover:bg-base-100 cursor-pointer flex items-center px-5 gap-2 rounded-md mb-1"
                 }
                 onClick={() => handleClick(channel.id)}
               >
@@ -48,7 +48,7 @@ export const ChatChannelList: React.FC = () => {
         <div className="mt-2 mx- w-full flex justify-center">
           <label
             htmlFor="create-channel-modal"
-            className="btn btn-secondary w-11/12"
+            className="btn btn-secondary w-11/12 btn-sm"
           >
             Add Channel
           </label>

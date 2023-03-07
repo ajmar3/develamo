@@ -29,11 +29,11 @@ export const ProjectChatWindow: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full bg-base-200 shadow-md rounded-sm flex">
+    <div className="w-full h-full flex gap-2">
       <div className="w-1/4 h-full">
         <ChatChannelList />
       </div>
-      <div className="w-3/4 h-full border-l">{getMessengerTab()}</div>
+      <div className="w-3/4 h-full">{getMessengerTab()}</div>
       <CreateChannelModal />
     </div>
   );

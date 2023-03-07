@@ -14,11 +14,11 @@ export const DashNavBar = () => {
 
   return (
     <div className="w-full bg-base-200 flex flex-col items-center sticky top-0 shadow-md">
-      <div className="max-w-8xl w-full flex justify-between px-4 py-3">
+      <div className="max-w-8xl w-full flex justify-between px-4 py-2">
         <Image src={"/images/DEVELAMO ELEPHANT WHT.png"} width={50} height={50} alt="hello"/>
       </div>
       <div className="w-full max-w-8xl px-3"><div className="w-full border-b border-base-content"></div></div>
-      <div className="max-w-8xl w-full flex gap-3 px-4 py-3">
+      <div className="max-w-8xl w-full flex gap-3 px-4 py-2">
         <button className={route == "find" ? "btn btn-sm btn-primary" : "btn btn-sm"} onClick={() => router.push("/dash/find", undefined, { shallow: true })}>Find a project</button>
         <button className={route == "my-projects" ? "btn btn-sm btn-primary" : "btn btn-sm"} onClick={() => router.push("/dash/my-projects", undefined, { shallow: true })}>My Projects</button>
         <button className={route == "my-profile" ? "btn btn-sm btn-primary" : "btn btn-sm"} onClick={() => router.push("/dash/my-profile", undefined, { shallow: true })}>My Profile</button>

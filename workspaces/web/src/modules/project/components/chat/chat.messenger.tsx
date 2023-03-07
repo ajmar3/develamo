@@ -69,10 +69,9 @@ export const ProjectChatMessenger: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full bg-base-200 shadow-md flex flex-col justify-between">
-      <div className="w-full flex bg-base-100 justify-between items-center h-12 px-3">
+    <div className="w-full h-full bg-base-200 shadow-md flex flex-col justify-between rounded-md">
+      <div className="w-full flex bg-base-100 justify-between items-center h-12 px-3 rounded-t-md">
         <div className="flex items-center gap-3">
-          <div className="text-white text-lg">{channelInfo.name}</div>
           <div className="flex items-center gap-1">
             {channelInfo.participants.map((x) => (
               <Image
@@ -112,7 +111,7 @@ export const ProjectChatMessenger: React.FC = () => {
                 <div
                   className={
                     message.sender.id == developerId
-                      ? "bg-primary chat-bubble"
+                      ? "bg-primary chat-bubble text-white"
                       : "chat-bubble"
                   }
                 >
@@ -128,7 +127,7 @@ export const ProjectChatMessenger: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="h-16 w-full bg-base-100 flex items-center px-2 gap-2">
+      <div className="h-16 w-full bg-base-100 flex items-center px-2 gap-2 rounded-b-md">
         <input
           className="input input-primary flex-1"
           onKeyDown={(e) => {
