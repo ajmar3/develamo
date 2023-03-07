@@ -32,3 +32,16 @@ body {
 .homepage-wave .shape-fill {
   fill: rgb(100, 26, 230)
 }
+
+.spacer {
+  aspect-ratio: 16/9;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.layer {
+  background-image: url('../../public/images/blob-scene-haikei.svg');
+}
