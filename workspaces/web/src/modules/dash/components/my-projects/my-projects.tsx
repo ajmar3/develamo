@@ -16,8 +16,6 @@ export const DashMyProjects: React.FC = () => {
       </div>
     );
 
-  console.log(myProjectsQuery.data);
-
   return (
     <div className="w-full flex flex-col gap-3 h-full overflow-y-scroll">
       <div className="w-full py-2 flex flex-col gap-6">

@@ -42,6 +42,7 @@ model Developer {
   sentProjectMessages  ProjectChatMessage[] @relation(name: "sentProjectMessages")
   seenProjectMessages  ProjectChatMessage[] @relation(name: "seenProjectMessages")
   projectApplications ProjectApplication[]
+  assignedTickets Ticket[]
 }
 
 model Tag {
@@ -96,6 +97,8 @@ model Project {
   channels ProjectChatChannel[]
   repoURL  String?
   applications  ProjectApplication[]
+  ticketLists TicketList[]
+  tickets Ticket[]
 }
 
 model ProjectLike {
@@ -167,4 +170,27 @@ model ProjectChatMessage {
   channelId String
   text  String
   seenBy Developer[] @relation(name: "seenProjectMessages")
+}
+
+model TicketList {
+  id  String  @id @default(uuid())
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  tickets Ticket[]
+  orderIndex  Int
+  title  String
+}
+
+model Ticket {
+  id  String  @id @default(uuid())
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  ticketList TicketList @relation(fields: [ticketListId], references: [id], onDelete: Cascade)
+  ticketListId String
+  assignedDevelopers  Developer[]
+  title String
+  description String
+  orderIndex  Int
+  createdAt DateTime  @default(now())
+  editedAt DateTime @default(now())
 }

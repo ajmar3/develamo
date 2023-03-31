@@ -32,9 +32,9 @@ export const ProjectLayout: React.FC<ProjectLayoutPropsType> = (props) => {
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center bg-base-300  relative">
+    <div className="w-screen h-screen flex flex-col items-center bg-base-300 relative">
       <ProjectNavBar />
-      <div className="max-w-8xl w-full flex flex-1 p-3 gap-4 overflow-y-scroll">
+      <div className="max-w-8xl w-full flex flex-1 p-3 gap-4 overflow-hidden">
         <div className="w-full h-full">{props.children}</div>
       </div>
     </div>
