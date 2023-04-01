@@ -1,4 +1,5 @@
 import { useDevAuthStore } from "modules/auth/store/auth-store";
+import { useFeedbackStore } from "modules/common/stores/feedback.store";
 import { ProjectApplicationType } from "modules/dash/hooks/useGetMyProjectsQuery";
 import { useConnectionStore } from "modules/dash/stores/connections.store";
 import { useProjectStrore } from "modules/dash/stores/project.store";
@@ -13,6 +14,7 @@ export interface IDashProjectSocketStore {
 
 export const useDashProjectSocketStore = create<IDashProjectSocketStore>((set) => {
   const projectStore = useProjectStrore.getState();
+  const feedbackStore = useFeedbackStore.getState();
 
   const socket = io(process.env.NEXT_PUBLIC_PROJECT_WEBSOCKET_URL as string, {
     withCredentials: true,
@@ -24,6 +26,10 @@ export const useDashProjectSocketStore = create<IDashProjectSocketStore>((set) =
 
   socket.on("project-aplication-update", (data: ProjectApplicationType[]) => {
     projectStore.setMyProjectApplications(data);
+  });
+
+  socket.on("error", (error) => {
+    feedbackStore.addMessage(error);
   });
 
   return {

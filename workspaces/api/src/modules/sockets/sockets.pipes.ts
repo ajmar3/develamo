@@ -5,7 +5,7 @@ import {
   Injectable,
   ValidationPipe,
 } from "@nestjs/common";
-import { BaseWsExceptionFilter, WsException } from "@nestjs/websockets";
+import { WsException } from "@nestjs/websockets";
 import { Socket } from "socket.io";
 
 @Injectable()
@@ -31,9 +31,10 @@ export class WsExceptionFilter {
 
   public handleError(client: Socket, exception: HttpException | WsException) {
     if (exception instanceof HttpException) {
-      // handle http exception
+      client.emit("error", exception.getResponse());
+      // throw exception;
     } else {
-      // handle websocket exception
+      client.emit("error", exception);
     }
   }
 }

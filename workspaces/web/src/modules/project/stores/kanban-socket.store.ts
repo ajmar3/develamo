@@ -3,6 +3,7 @@ import create from "zustand";
 import { EditTicketListType, TicketListType } from "../types/kanban.types";
 import { useKanbanStore } from "./kanban-store";
 import { stringify } from "querystring";
+import { useFeedbackStore } from "modules/common/stores/feedback.store";
 
 export interface IProjectSocketStore {
   socket: Socket;
@@ -35,6 +36,7 @@ export interface IProjectSocketStore {
 
 export const useKanbanSocketStore = create<IProjectSocketStore>((set) => {
   const kanbanStore = useKanbanStore.getState();
+  const feedbackStore = useFeedbackStore.getState();
 
   const socket = io(process.env.NEXT_PUBLIC_KANBAN_WEBSOCKET_URL as string, {
     withCredentials: true,
@@ -57,6 +59,10 @@ export const useKanbanSocketStore = create<IProjectSocketStore>((set) => {
 
   socket.on("ticket-list-edit", (newListData: EditTicketListType) => {
     kanbanStore.editTicketList(newListData);
+  });
+
+  socket.on("error", (error) => {
+    feedbackStore.addMessage(error);
   });
 
   return {

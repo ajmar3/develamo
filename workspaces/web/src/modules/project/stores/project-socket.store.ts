@@ -11,6 +11,7 @@ import {
 } from "../types/chat-types";
 import { useProjectAdminStore } from "./project-admin.store";
 import { useProjectBaseStore } from "./project-base.store";
+import { useFeedbackStore } from "modules/common/stores/feedback.store";
 
 export interface IProjectSocketStore {
   socket: Socket;
@@ -30,6 +31,7 @@ export interface IProjectSocketStore {
 export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
   const projectStore = useProjectBaseStore.getState();
   const projectAdminStore = useProjectAdminStore.getState();
+  const feedbackStore = useFeedbackStore.getState();
 
   const socket = io(process.env.NEXT_PUBLIC_PROJECT_WEBSOCKET_URL as string, {
     withCredentials: true,
@@ -75,6 +77,10 @@ export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
 
   socket.on("updated-developer-list", (newDevs: ProjectDeveloperType[]) => {
     projectStore.editProjectDevelopers(newDevs);
+  });
+
+  socket.on("error", (error) => {
+    feedbackStore.addMessage(error);
   });
 
   return {

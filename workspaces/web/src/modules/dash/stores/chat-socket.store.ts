@@ -7,6 +7,7 @@ import {
   ChatListProjectType,
   DirectMessageType,
 } from "modules/common/types/chat.types";
+import { useFeedbackStore } from "modules/common/stores/feedback.store";
 
 export interface IChatSocketStore {
   socket: Socket;
@@ -19,6 +20,7 @@ export interface IChatSocketStore {
 
 export const useChatSocketStore = create<IChatSocketStore>((set) => {
   const chatStore = useChatMessageStore.getState();
+  const feedbackStore = useFeedbackStore.getState();
 
   const socket = io(process.env.NEXT_PUBLIC_CHAT_WEBSOCKET_URL as string, {
     withCredentials: true,
@@ -62,6 +64,11 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
       }
     }
   );
+
+  socket.on("error", (error) => {
+    feedbackStore.addMessage(error);
+  });
+
 
   return {
     socket: socket,

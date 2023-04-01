@@ -1,4 +1,5 @@
 import { useDevAuthStore } from "modules/auth/store/auth-store";
+import { useFeedbackStore } from "modules/common/stores/feedback.store";
 import { ProjectApplicationType } from "modules/dash/hooks/useGetMyProjectsQuery";
 import { useConnectionStore } from "modules/dash/stores/connections.store";
 import { useProjectStrore } from "modules/dash/stores/project.store";
@@ -16,6 +17,7 @@ export interface IConnectionSocketStore {
 export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => {
   const connectStore = useConnectionStore.getState();
   const projectStore = useProjectStrore.getState();
+  const feedbackStore = useFeedbackStore.getState();
 
   const socket = io(process.env.NEXT_PUBLIC_CONNECTION_WEBSOCKET_URL as string, {
     withCredentials: true,
@@ -38,6 +40,10 @@ export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => 
   socket.on("connection-request-response", (data) => {
     connectStore.setConnections(data.connections);
     connectStore.setConnectionRequests(data.requests);
+  });
+
+  socket.on("error", (error) => {
+    feedbackStore.addMessage(error);
   });
 
   return {
