@@ -20,7 +20,7 @@ export const ProjectAuthProvider: React.FC<IDevAuth> = (props) => {
   const projectAuthStore = useProjectAuthStore();
 
   if (error) {
-    router.push('/');
+    router.push('/dash/find');
   }
 
   useEffect(() => {

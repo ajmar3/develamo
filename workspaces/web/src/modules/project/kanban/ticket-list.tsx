@@ -45,10 +45,6 @@ export const KanbanTicketList: React.FC<TicketListType> = (props) => {
       ticketListId: props.id,
       newTitle: ticketListNameInput
     });
-    console.log("running", {
-      ticketListId: props.id,
-      newTitle: ticketListNameInput
-    });
   };
 
   const {

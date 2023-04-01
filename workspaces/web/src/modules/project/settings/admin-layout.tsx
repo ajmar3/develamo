@@ -24,6 +24,9 @@ export const ProjectSettingsAdminLayout: React.FC = () => {
   const rejectApplication = useProjectSocketStore(
     (state) => state.rejectProjectApplication
   );
+  const deleteProject = useProjectSocketStore((state) => state.deleteProject);
+  const editProject = useProjectSocketStore((state) => state.editProject);
+  const removeDev = useProjectSocketStore((state) => state.removeDeveloperFromProject);
 
   const [titleInput, setTitleInput] = useState(projectInfo?.title);
   const [descInput, setDescInput] = useState(projectInfo?.description);
@@ -36,6 +39,42 @@ export const ProjectSettingsAdminLayout: React.FC = () => {
       getApplications(projectInfo?.id);
     }
   }, []);
+
+  let deleteCounter = 0;
+  const handleDelete = () => {
+    deleteCounter = deleteCounter + 1;
+    if (deleteCounter < 2) {
+      alert(
+        "Are you sure you want to delete this project, it will remove the project for all team members? If yes, select delete again."
+      );
+      return;
+    } else if (projectInfo) {
+      deleteProject(projectInfo.id);
+    }
+  };
+
+  const handleSave = () => {
+    if (titleInput && descInput && repoInput && projectInfo) {
+      editProject({ title: titleInput, description: descInput, repoURL: `https://github.com/${githubUsername}/` + repoInput }, projectInfo?.id);
+    }
+  };
+
+  const removeCounter = { id: "", counter: 0 };
+  const handleRemove = (id: string) => {
+    if (removeCounter.id != id) {
+      removeCounter.counter = 0;
+    }
+    removeCounter.counter = removeCounter.counter + 1;
+    removeCounter.id = id;
+    if (removeCounter.counter != 2) {
+      alert(
+        "Are you sure you want to remove this developer from the project? If yes, select remove again."
+      );
+      return;
+    } else if (projectInfo) {
+      removeDev({ projectId: projectInfo.id, developerId: id });
+    }
+  };
 
   return (
     <div className="w-full h-full flex gap-5 p-2">
@@ -53,7 +92,7 @@ export const ProjectSettingsAdminLayout: React.FC = () => {
                     height={60}
                     className="rounded-full border p-1"
                   />
-                  <button className="btn btn-warning btn-xs">Remove</button>
+                  <button className="btn btn-warning btn-xs" onClick={() => handleRemove(dev.id)}>Remove</button>
                 </div>
               ))
             ) : (
@@ -94,6 +133,14 @@ export const ProjectSettingsAdminLayout: React.FC = () => {
               value={descInput}
               onChange={(e) => setDescInput(e.target.value)}
             />
+          </div>
+          <div className="w-full flex gap-2 justify-end">
+            <button className="btn btn-warning" onClick={() => handleDelete()}>
+              Delete Project
+            </button>
+            <button className="btn btn-primary" onClick={() => handleSave()}>
+              Save Changes
+            </button>
           </div>
         </div>
       </div>

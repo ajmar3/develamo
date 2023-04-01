@@ -1,7 +1,9 @@
 import create from "zustand";
 import {
+  EditProjectType,
   ProjectChatChannelType,
   ProjectChatMessageType,
+  ProjectDeveloperType,
   ProjectInfoType,
 } from "../types/chat-types";
 
@@ -17,6 +19,12 @@ export interface IProjectStore {
   activeChannelMessages: ProjectChatMessageType[];
   setActiveChannelMessages: (newMessages: ProjectChatMessageType[]) => void;
   addActiveChannelMessage: (newMessage: ProjectChatMessageType) => void;
+  deleteProjectIndicator: boolean;
+  setDeleteProjectIndicator: (newState: boolean) => void;
+  editProjectInfo: (info: EditProjectType) => void;
+  removedFromProjectIndicator: boolean;
+  setRemovedFromProjectIndicator: (newState: boolean) => void;
+  editProjectDevelopers: (info: ProjectDeveloperType[]) => void;
 }
 
 export const useProjectBaseStore = create<IProjectStore>((set) => {
@@ -27,56 +35,87 @@ export const useProjectBaseStore = create<IProjectStore>((set) => {
       set((state) => {
         const info = state.projectInfo;
         if (info) {
-          const channels = info.chat.channels.map(x => x);
+          const channels = info.chat.channels.map((x) => x);
           channels.push(newChannel);
-          channels.sort((a: ProjectChatChannelType, b: ProjectChatChannelType) => {
-            return (
-              new Date(a.createdAt).valueOf() -
-              new Date(b.createdAt).valueOf()
-            );
-          });
+          channels.sort(
+            (a: ProjectChatChannelType, b: ProjectChatChannelType) => {
+              return (
+                new Date(a.createdAt).valueOf() -
+                new Date(b.createdAt).valueOf()
+              );
+            }
+          );
           info.chat.channels = channels;
         }
         return { projectInfo: info };
       }),
-    updateChannelMessage: (newMessage: ProjectChatMessageType) => set(state => {
-      const projectInfo = state.projectInfo;
-      if (projectInfo) {
-        const relativeChannel = projectInfo.chat.channels.findIndex(x => x.id == newMessage.channelId);
-        if (relativeChannel) {
-          projectInfo.chat.channels[relativeChannel].messages[0] = newMessage;
+    updateChannelMessage: (newMessage: ProjectChatMessageType) =>
+      set((state) => {
+        const projectInfo = state.projectInfo;
+        if (projectInfo) {
+          const relativeChannel = projectInfo.chat.channels.findIndex(
+            (x) => x.id == newMessage.channelId
+          );
+          if (relativeChannel) {
+            projectInfo.chat.channels[relativeChannel].messages[0] = newMessage;
+          }
         }
-      }
-      return { projectInfo: projectInfo };
-    }),
-    setActiveChannelId: (newId: string) => set(state => ({ activeChannelId: newId })),
+        return { projectInfo: projectInfo };
+      }),
+    setActiveChannelId: (newId: string) =>
+      set((state) => ({ activeChannelId: newId })),
     setActiveChannelInfo: (newInfo: any) =>
       set((state) => ({ activeChannelInfo: newInfo })),
-      activeChannelMessages: [],
+    activeChannelMessages: [],
     setActiveChannelMessages: (newMessages: any[]) =>
       set((state) => {
-        newMessages.sort((a: ProjectChatMessageType, b: ProjectChatMessageType) => {
-          return (
-            new Date(a.sentAt).valueOf() -
-            new Date(b.sentAt).valueOf()
-          );
-        });
+        newMessages.sort(
+          (a: ProjectChatMessageType, b: ProjectChatMessageType) => {
+            return new Date(a.sentAt).valueOf() - new Date(b.sentAt).valueOf();
+          }
+        );
         return { activeChannelMessages: newMessages };
       }),
-    addActiveChannelMessage: (newMessage: ProjectChatMessageType) => set(state => {
-      if (newMessage.channelId != state.activeChannelId) {
-        return ({ activeChannelMessages: state.activeChannelMessages });
-      }
-      const currentState = state.activeChannelMessages;
-      const updatedMessages = currentState.map(x => x);
-      updatedMessages.push(newMessage);
-      updatedMessages.sort((a: ProjectChatMessageType, b: ProjectChatMessageType) => {
-        return (
-          new Date(a.sentAt).valueOf() -
-          new Date(b.sentAt).valueOf()
+    addActiveChannelMessage: (newMessage: ProjectChatMessageType) =>
+      set((state) => {
+        if (newMessage.channelId != state.activeChannelId) {
+          return { activeChannelMessages: state.activeChannelMessages };
+        }
+        const currentState = state.activeChannelMessages;
+        const updatedMessages = currentState.map((x) => x);
+        updatedMessages.push(newMessage);
+        updatedMessages.sort(
+          (a: ProjectChatMessageType, b: ProjectChatMessageType) => {
+            return new Date(a.sentAt).valueOf() - new Date(b.sentAt).valueOf();
+          }
         );
-      });
-      return ({ activeChannelMessages: updatedMessages });
-    })
+        return { activeChannelMessages: updatedMessages };
+      }),
+    deleteProjectIndicator: false,
+    setDeleteProjectIndicator: (newState: boolean) =>
+      set((state) => ({ deleteProjectIndicator: newState })),
+    editProjectInfo: (info: EditProjectType) =>
+      set((state) => {
+        if (!state.projectInfo) return { projectInfo: state.projectInfo };
+
+        const currentAsString = JSON.stringify(state.projectInfo);
+        const current: ProjectInfoType = JSON.parse(currentAsString);
+        current.description = info.description;
+        current.title = info.title;
+        current.repoURL = info.repoURL;
+        return { projectInfo: current };
+      }),
+    removedFromProjectIndicator: false,
+    setRemovedFromProjectIndicator: (newState: boolean) =>
+      set((state) => ({ removedFromProjectIndicator: newState })),
+    editProjectDevelopers: (info: ProjectDeveloperType[]) =>
+      set((state) => {
+        if (!state.projectInfo) return { projectInfo: state.projectInfo };
+
+        const currentAsString = JSON.stringify(state.projectInfo);
+        const current: ProjectInfoType = JSON.parse(currentAsString);
+        current.developers = info;
+        return { projectInfo: current };
+      }),
   };
 });

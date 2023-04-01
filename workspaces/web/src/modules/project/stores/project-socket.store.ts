@@ -1,18 +1,30 @@
 import { io, Socket } from "socket.io-client";
 import create from "zustand";
-import { ProjectApplicationType, ProjectChatChannelType, ProjectChatMessageType, ProjectInfoType } from "../types/chat-types";
+import {
+  EditProjectType,
+  ProjectApplicationType,
+  ProjectChatChannelType,
+  ProjectChatMessageType,
+  ProjectDeveloperType,
+  ProjectInfoType,
+  RemoveDevFromProjectType,
+} from "../types/chat-types";
 import { useProjectAdminStore } from "./project-admin.store";
 import { useProjectBaseStore } from "./project-base.store";
 
 export interface IProjectSocketStore {
   socket: Socket;
-  initSocket: (data: { developerId: string, projectId: string }) => void;
-  createChannel: (data: { projectId: string, name: string }) => void;
-  createMessage: (data: { channelId: string, text: string }) => void;
+  initSocket: (data: { developerId: string; projectId: string }) => void;
+  createChannel: (data: { projectId: string; name: string }) => void;
+  createMessage: (data: { channelId: string; text: string }) => void;
   openChannel: (channelId: string) => void;
   getProjectApplication: (projectId: string) => void;
   acceptProjectApplication: (applicationId: string) => void;
   rejectProjectApplication: (applicationId: string) => void;
+  leaveProject: (projectId: string) => void;
+  deleteProject: (projectId: string) => void;
+  editProject: (data: EditProjectType, projectId: string) => void;
+  removeDeveloperFromProject: (data: RemoveDevFromProjectType) => void;
 }
 
 export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
@@ -34,7 +46,7 @@ export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
   socket.on("new-channel", (data: ProjectChatChannelType) => {
     projectStore.addChatInfoChannel(data);
   });
-  
+
   socket.on("channel-opened", (data: ProjectChatChannelType) => {
     projectStore.setActiveChannelInfo(data);
     projectStore.setActiveChannelMessages(data.messages);
@@ -49,15 +61,31 @@ export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
     projectAdminStore.setProjectApplications(data);
   });
 
+  socket.on("project-edited", (data: EditProjectType) => {
+    projectStore.editProjectInfo(data);
+  });
+
+  socket.on("removed-from-project", (id: string) => {
+    projectStore.setRemovedFromProjectIndicator(true);
+  });
+
+  socket.on("project-deleted", () => {
+    projectStore.setDeleteProjectIndicator(true);
+  });
+
+  socket.on("updated-developer-list", (newDevs: ProjectDeveloperType[]) => {
+    projectStore.editProjectDevelopers(newDevs);
+  });
+
   return {
     socket: socket,
-    initSocket: (data: { developerId: string, projectId: string }) => {
+    initSocket: (data: { developerId: string; projectId: string }) => {
       socket.emit("connected", data);
     },
-    createChannel: (data: { projectId: string, name: string }) => {
+    createChannel: (data: { projectId: string; name: string }) => {
       socket.emit("create-channel", data);
     },
-    createMessage: (data: { channelId: string, text: string }) => {
+    createMessage: (data: { channelId: string; text: string }) => {
       socket.emit("create-message", data);
     },
     openChannel: (channelId: string) => {
@@ -73,6 +101,23 @@ export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
     },
     rejectProjectApplication: (applicationId: string) => {
       socket.emit("reject-project-application", applicationId);
-    }
+    },
+    leaveProject: (projectId: string) => {
+      socket.emit("leave-project", projectId);
+    },
+    deleteProject: (projectId: string) => {
+      socket.emit("delete-project", projectId);
+    },
+    editProject: (data: EditProjectType, projectId: string) => {
+      socket.emit("edit-project-info", {
+        title: data.title,
+        description: data.description,
+        repoURL: data.repoURL,
+        projectId: projectId,
+      });
+    },
+    removeDeveloperFromProject: (data: RemoveDevFromProjectType) => {
+      socket.emit("remove-developer-from-project", data);
+    },
   };
 });

@@ -58,6 +58,13 @@ export type ProjectInfoType = {
   }
 }
 
+export type ProjectDeveloperType = {
+  id: string;
+  githubUsername: string;
+  name: string;
+  avatarURL: string;
+}
+
 export type ProjectApplicationType = {
   id: string;
   createdAt: string;
@@ -68,4 +75,15 @@ export type ProjectApplicationType = {
       avatarURL: string;
       bio?: string
   };
+}
+
+export type EditProjectType = {
+  title: string,
+  description: string,
+  repoURL: string,
+}
+
+export type RemoveDevFromProjectType = {
+  projectId: string,
+  developerId: string,
 }

@@ -1,6 +1,6 @@
 import { ProjectAuthProvider } from "modules/auth/components/project-auth-provider";
 import { ProjectLayout } from "modules/project/components/layout";
-import { ProjectSettingsLayout } from "modules/project/components/settings/layout";
+import { ProjectSettingsLayout } from "modules/project/settings/layout";
 
 export default function Project() {
   return (

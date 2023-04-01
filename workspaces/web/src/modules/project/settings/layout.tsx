@@ -1,25 +1,57 @@
 import { useProjectAuthStore } from "modules/auth/store/project-auth-store";
 import { useProjectBaseStore } from "modules/project/stores/project-base.store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProjectSettingsAdminLayout } from "./admin-layout";
 import Image from "next/image";
+import { useProjectSocketStore } from "../stores/project-socket.store";
+import { useRouter } from "next/router";
 
 export const ProjectSettingsLayout: React.FC = () => {
   const githubUsername = useProjectAuthStore(
     (state) => state.devInfo?.githubUsername
   );
   const developerId = useProjectAuthStore((state) => state.devInfo?.id);
-
   const projectInfo = useProjectBaseStore((state) => state.projectInfo);
-  const [titleInput, setTitleInput] = useState(projectInfo?.title);
-  const [descInput, setDescInput] = useState(projectInfo?.description);
-  const [repoInput, setRepoInput] = useState(
-    projectInfo?.repoURL.slice(`https://github.com/${githubUsername}/`.length)
+  const leaveProject = useProjectSocketStore((state) => state.leaveProject);
+  const projectDeletedIndicator = useProjectBaseStore(
+    (state) => state.deleteProjectIndicator
   );
+  const removedFromProjectIndicator = useProjectBaseStore(
+    (state) => state.removedFromProjectIndicator
+  );
+
+  let leaveCount = 0;
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (projectDeletedIndicator) {
+      router.push("/dash/find");
+    }
+  }, [projectDeletedIndicator]);
+
+  useEffect(() => {
+    if (removedFromProjectIndicator) {
+      router.push("/dash/find");
+    }
+  }, [removedFromProjectIndicator]);
 
   const [repoOffset, setRepoOffset] = useState(
     `https://github.com/${githubUsername}/`.length
   );
+
+  const handleLeave = () => {
+    leaveCount = leaveCount + 1;
+    if (leaveCount < 2) {
+      alert(
+        "Are you sure you want to leave the project? If yes, select leave again."
+      );
+      return;
+    } else if (projectInfo) {
+      leaveProject(projectInfo.id);
+      router.push("/dash/find");
+    }
+  };
 
   if (projectInfo?.owner.id == developerId) {
     return <ProjectSettingsAdminLayout />;
@@ -27,9 +59,9 @@ export const ProjectSettingsLayout: React.FC = () => {
 
   return (
     <div className="w-full h-full flex gap-2 p-2">
-      <div className="w-2/3 flex flex-col gap-8">
-        <div>
-          <button className="btn btn-warning">Leave Project</button>
+      <div className="w-2/3 flex flex-col gap-6">
+        <div className="text-2xl text-white font-semibold">
+          {projectInfo?.title}
         </div>
         <div className="w-full flex flex-col gap-2">
           <div className="text-xl text-white">Project Team</div>
@@ -50,6 +82,15 @@ export const ProjectSettingsLayout: React.FC = () => {
               <div className="text-center my-8">No teammates yet!</div>
             )}
           </div>
+        </div>
+        <div>
+          <div className="text-xl text-white pb-2">Project Description</div>
+          {projectInfo?.description}
+        </div>
+        <div>
+          <button className="btn btn-warning" onClick={() => handleLeave()}>
+            Leave Project
+          </button>
         </div>
       </div>
     </div>

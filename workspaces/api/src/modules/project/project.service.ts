@@ -10,7 +10,9 @@ import {
   CreateChannelDto,
   CreateChannelMessageDto,
   CreateProjectDto,
+  EditProjectDto,
   ProjectFeedDto,
+  RemoveDeveloperDto,
 } from "./project.dtos";
 
 @Injectable()
@@ -343,6 +345,7 @@ export class ProjectService {
         where: {
           requesterId: developerId,
           projectId: data.projectId,
+          resolved: false,
         },
         select: {
           id: true,
@@ -821,5 +824,223 @@ export class ProjectService {
     });
 
     return application.project.id;
+  }
+
+  async leaveProject(developerId: string, projectId: string) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: projectId,
+      },
+      select: {
+        id: true,
+        title: true,
+        developers: {
+          select: {
+            id: true,
+          },
+        },
+        ownerId: true,
+        channels: {
+          select: {
+            id: true,
+            participants: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!project) throw new BadRequestException("Could not find that project");
+
+    if (project.ownerId == developerId)
+      throw new BadRequestException("Cannot leave a project you own");
+
+    if (!project.developers.map((x) => x.id).includes(developerId))
+      throw new BadRequestException("You are not part of this project");
+
+    await this.prismaService.$transaction([
+      ...project.channels.map((channel) => {
+        return this.prismaService.projectChatChannel.update({
+          where: {
+            id: channel.id,
+          },
+          data: {
+            participants: {
+              set: channel.participants.filter((x) => x.id != developerId),
+            },
+          },
+        });
+      }),
+      this.prismaService.project.update({
+        where: {
+          id: projectId,
+        },
+        data: {
+          developers: {
+            set: project.developers.filter((x) => x.id != developerId),
+          },
+        },
+      }),
+    ]);
+
+    return project.title;
+  }
+
+  async deleteProject(developerId: string, projectId: string) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: projectId,
+      },
+      select: {
+        id: true,
+        title: true,
+        developers: {
+          select: {
+            id: true,
+          },
+        },
+        ownerId: true,
+        channels: {
+          select: {
+            id: true,
+            participants: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!project) throw new BadRequestException("Could not find that project");
+
+    if (project.ownerId != developerId)
+      throw new BadRequestException("Cannot delete a project you don't own");
+
+    await this.prismaService.project.delete({
+      where: {
+        id: projectId,
+      },
+    });
+
+    return project.title;
+  }
+
+  async editProjectInfo(data: EditProjectDto, developerId: string) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: data.projectId,
+      },
+      select: {
+        id: true,
+        ownerId: true,
+      },
+    });
+
+    if (!project)
+      throw new BadRequestException("Could not find a project with that Id.");
+
+    if (project.ownerId != developerId)
+      throw new UnauthorizedException("Cannot edit a project you don't own");
+
+    const updatedProject = await this.prismaService.project.update({
+      where: {
+        id: data.projectId,
+      },
+      data: {
+        description: data.description,
+        title: data.title,
+        repoURL: data.repoURL,
+      },
+    });
+
+    return updatedProject;
+  }
+
+  async removeDeveloperFromProject(
+    developerId: string,
+    data: RemoveDeveloperDto
+  ) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: data.projectId,
+      },
+      select: {
+        id: true,
+        title: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            githubUsername: true,
+            avatarURL: true,
+          },
+        },
+        developers: {
+          select: {
+            id: true,
+            name: true,
+            githubUsername: true,
+            avatarURL: true,
+          },
+        },
+        ownerId: true,
+        channels: {
+          select: {
+            id: true,
+            participants: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!project) throw new BadRequestException("Could not find that project");
+
+    if (project.ownerId != developerId)
+      throw new BadRequestException(
+        "Cannot remove a developer from a project you don't own"
+      );
+
+    if (!project.developers.map((x) => x.id).includes(data.developerId))
+      throw new BadRequestException("Developer is not part of this project");
+
+    await this.prismaService.$transaction([
+      ...project.channels.map((channel) => {
+        return this.prismaService.projectChatChannel.update({
+          where: {
+            id: channel.id,
+          },
+          data: {
+            participants: {
+              set: channel.participants.filter((x) => x.id != data.developerId),
+            },
+          },
+        });
+      }),
+      this.prismaService.project.update({
+        where: {
+          id: data.projectId,
+        },
+        data: {
+          developers: {
+            set: project.developers
+              .filter((x) => x.id != data.developerId)
+              .map((x) => ({
+                id: x.id,
+              })),
+          },
+        },
+      }),
+    ]);
+
+    return project.developers.filter((x) => x.id != data.developerId);
   }
 }

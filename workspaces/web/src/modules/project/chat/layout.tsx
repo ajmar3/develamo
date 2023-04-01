@@ -1,8 +1,20 @@
 import { useEffect } from "react";
 import { ProjectChatWindow } from "./chat-window";
 import { useProjectBaseStore } from "modules/project/stores/project-base.store";
+import { useRouter } from "next/router";
 
 export const ProjectChatLayout: React.FC = () => {
+
+  const removedFromProjectIndicator = useProjectBaseStore(
+    (state) => state.removedFromProjectIndicator
+  );
+  const router = useRouter();
+
+  useEffect(() => {
+    if (removedFromProjectIndicator) {
+      router.push("/dash/find");
+    }
+  }, [removedFromProjectIndicator]);
 
   return (
     <div className="w-full h-full flex gap-2">

@@ -10,7 +10,12 @@ import { CreateProjectApplicationDto } from "../connection/connection.dtos";
 import { IValidatedSocket } from "../sockets/socket.interfaces";
 import { ConnectProjectWebsocketDto } from "../sockets/sockets.dtos";
 import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
-import { CreateChannelDto, CreateChannelMessageDto } from "./project.dtos";
+import {
+  CreateChannelDto,
+  CreateChannelMessageDto,
+  EditProjectDto,
+  RemoveDeveloperDto,
+} from "./project.dtos";
 import { ProjectService } from "./project.service";
 
 @WebSocketGateway({
@@ -135,5 +140,45 @@ export class ProjectGateway {
     );
 
     client.emit("project-application-updates", newApplicationInfo);
+  }
+
+  @SubscribeMessage("leave-project")
+  async leaveProject(client: IValidatedSocket, projectId: string) {
+    const projectTitle = await this.projectService.leaveProject(
+      client.user.id,
+      projectId
+    );
+    client.emit("left-project", projectTitle);
+  }
+
+  @SubscribeMessage("delete-project")
+  async deleteProject(client: IValidatedSocket, projectId: string) {
+    const projectTitle = await this.projectService.deleteProject(
+      client.user.id,
+      projectId
+    );
+    this.server.to(projectId).emit("project-deleted", projectTitle);
+  }
+
+  @SubscribeMessage("edit-project-info")
+  async editProjectInfo(client: IValidatedSocket, data: EditProjectDto) {
+    const newProjectInfo = await this.projectService.editProjectInfo(
+      data,
+      client.user.id
+    );
+    client.emit("project-edited", newProjectInfo);
+  }
+
+  @SubscribeMessage("remove-developer-from-project")
+  async removeDeveloperFromProject(
+    client: IValidatedSocket,
+    data: RemoveDeveloperDto
+  ) {
+    const newTeamInfo = await this.projectService.removeDeveloperFromProject(
+      client.user.id,
+      data
+    );
+    client.emit("removed-from-project", data.developerId);
+    this.server.to(data.projectId).emit("updated-developer-list", newTeamInfo);
   }
 }

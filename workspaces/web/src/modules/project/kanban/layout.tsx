@@ -26,6 +26,8 @@ import { useEffect, useState } from "react";
 import { KanbanTicket } from "./ticket";
 import { KanbanTicketList } from "./ticket-list";
 import { handleDragEndUtil, handleDragOverUtil } from "./utils";
+import { useProjectBaseStore } from "../stores/project-base.store";
+import { useRouter } from "next/router";
 
 export const ProjectKanbanLayout: React.FC = () => {
   const [newListInput, setNewListInput] = useState("");
@@ -45,8 +47,16 @@ export const ProjectKanbanLayout: React.FC = () => {
   const reorderTicketListFunc = useKanbanSocketStore(
     (state) => state.reorderTicketList
   );
+  const removedFromProjectIndicator = useProjectBaseStore(
+    (state) => state.removedFromProjectIndicator
+  );
+  const router = useRouter();
 
-
+  useEffect(() => {
+    if (removedFromProjectIndicator) {
+      router.push("/dash/find");
+    }
+  }, [removedFromProjectIndicator]);
 
   const socketConnected = useKanbanStore((state) => state.connected);
 

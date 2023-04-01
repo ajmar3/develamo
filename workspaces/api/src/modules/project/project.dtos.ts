@@ -43,3 +43,28 @@ export class CreateChannelMessageDto {
   @IsString()
   text: string;
 }
+
+export class EditProjectDto {
+  @IsString()
+  projectId: string;
+
+  @IsString()
+  @MinLength(5)
+  title: string;
+
+  @IsString()
+  @MinLength(5)
+  description: string;
+
+  @IsString()
+  @ValidateIf((object, value) => value != null || value != undefined)
+  repoURL: string;
+}
+
+export class RemoveDeveloperDto {
+  @IsString()
+  projectId: string;
+
+  @IsString()
+  developerId: string;
+}
