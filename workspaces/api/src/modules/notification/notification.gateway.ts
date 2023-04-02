@@ -71,7 +71,6 @@ export class NotificationGateway implements OnGatewayDisconnect {
   }
 
   async sendNotification(developerId: string, notification: any) {
-    console.log("hello");
     const clientId = await this.cacheService.checkUserOnline(
       developerId,
       "notification"

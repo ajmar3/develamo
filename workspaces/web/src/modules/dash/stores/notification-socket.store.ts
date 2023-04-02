@@ -23,7 +23,6 @@ export const useNotificationSocketStore = create<INotificationSocketStore>(
     });
 
     socket.on("notifications-info", (data) => {
-      console.log(data);
       notificationStore.setNotifications(data);
     });
 

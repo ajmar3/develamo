@@ -68,3 +68,8 @@ export class RemoveDeveloperDto {
   @IsString()
   developerId: string;
 }
+
+export class LikeProjectDto {
+  @IsString()
+  projectId: string;
+}

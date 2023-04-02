@@ -27,7 +27,7 @@ export const DashLayout: React.FC<DashLayoutPropsType> = (props) => {
     <div className="w-screen h-screen flex flex-col items-center bg-base-300  relative">
       <DashNavBar />
       <div className="max-w-8xl w-full flex p-3 gap-4 h-full overflow-y-scroll">
-        <div className="w-1/6 h-full max-h-full bg-base-200 shadow-lg sticky top-0">
+        <div className="w-1/6 max-h-full h-fit pb-1 bg-base-200 shadow-lg sticky top-0">
           <DashNotifications />
         </div>
         <div className="w-1/2">

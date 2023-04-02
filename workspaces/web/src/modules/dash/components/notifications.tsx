@@ -160,7 +160,7 @@ export const DashNotifications: React.FC = () => {
           })}
         </div>
       ) : (
-        <div className="w-full flex justify-center">No new notifications.</div>
+        <div className="w-full flex justify-center text-sm">No new notifications.</div>
       )}
       {seenNotifications.length > 0 && (
         <>

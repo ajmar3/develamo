@@ -17,20 +17,18 @@ import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { DashTabEnum, useDashNavStore } from "../stores/nav-store";
 import { useConnectionSocketStore } from "../stores/connection-socket.store";
 import { useChatSocketStore } from "../stores/chat-socket.store";
+import { useSearchStore } from "../stores/search.store";
 
 export const DashSearchResults: React.FC<{
   search: string;
 }> = (props) => {
-  const [searchResults, setSearchResults] = useState<SearchResultsType>({
-    developers: [],
-    projects: [],
-  });
+
+  const searchResults = useSearchStore(state => state.searchResults);
+  const setSearchResults = useSearchStore(state => state.setSearchResults);
 
   const [resultsTab, setResultsTab] = useState<number>(1);
 
   const searchMutation = useSearchMutation();
-  const chats = useChatMessageStore((state) => state.chats);
-  const setDashTab = useDashNavStore(state => state.setActiveTab);
   const connections = useConnectionStore((state) => state.connections);
   const requests = useConnectionStore((state) => state.connectionRequests);
   const sentRequests = useConnectionStore((state) => state.sentRequests);

@@ -25,9 +25,7 @@ export type ProjectFeedType = {
     title: string
   }[]
   likes: {
-    developer: {
-      id: string
-    }
+    developerId: string
   }[]
 }[]
 

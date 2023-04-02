@@ -15,10 +15,12 @@ import {
   CreateChannelDto,
   CreateChannelMessageDto,
   EditProjectDto,
+  LikeProjectDto,
   RemoveDeveloperDto,
 } from "./project.dtos";
 import { ProjectService } from "./project.service";
 import { CachingService } from "../caching/caching.service";
+import { SearchService } from "../search/search.service";
 
 @WebSocketGateway({
   cors: {
@@ -194,5 +196,25 @@ export class ProjectGateway implements OnGatewayDisconnect {
     );
     client.emit("removed-from-project", data.developerId);
     this.server.to(data.projectId).emit("updated-developer-list", newTeamInfo);
+  }
+
+  @SubscribeMessage("like-project")
+  async likeProject(client: IValidatedSocket, data: LikeProjectDto) {
+    const updatedLikeInfo = await this.projectService.likeProject(
+      data,
+      client.user.id
+    );
+
+    client.emit("updated-project-likes", updatedLikeInfo);
+  }
+
+  @SubscribeMessage("unlike-project")
+  async unlikeProject(client: IValidatedSocket, data: LikeProjectDto) {
+    const updatedLikeInfo = await this.projectService.unlikeProject(
+      data,
+      client.user.id
+    );
+
+    client.emit("updated-project-likes", updatedLikeInfo);
   }
 }

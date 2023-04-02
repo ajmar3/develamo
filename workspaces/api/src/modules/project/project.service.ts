@@ -3,7 +3,6 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
-import { Developer } from "@prisma/client";
 import { CreateProjectApplicationDto } from "../connection/connection.dtos";
 import { PrismaService } from "../database/prisma.service";
 import {
@@ -11,6 +10,7 @@ import {
   CreateChannelMessageDto,
   CreateProjectDto,
   EditProjectDto,
+  LikeProjectDto,
   ProjectFeedDto,
   RemoveDeveloperDto,
 } from "./project.dtos";
@@ -546,7 +546,6 @@ export class ProjectService {
       });
 
       if (developerId != project.ownerId) {
-        console.log("hello there");
         await this.notifService.createProjectNotification({
           developerId: project.ownerId,
           referencedProjectId: project.id,
@@ -1087,5 +1086,89 @@ export class ProjectService {
     });
 
     return project.developers.filter((x) => x.id != data.developerId);
+  }
+
+  async likeProject(data: LikeProjectDto, developerId: string) {
+    const existingLike = await this.prismaService.projectLike.findFirst({
+      where: {
+        developerId: developerId,
+        projectId: data.projectId,
+      },
+    });
+
+    if (existingLike)
+      throw new BadRequestException("You have already liked this project");
+
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: data.projectId,
+      },
+    });
+
+    if (!project) throw new BadRequestException("This project does not exist");
+
+    const [_, newData] = await this.prismaService.$transaction([
+      this.prismaService.projectLike.create({
+        data: {
+          project: {
+            connect: {
+              id: data.projectId,
+            },
+          },
+          developer: {
+            connect: {
+              id: developerId,
+            },
+          },
+        },
+      }),
+      this.prismaService.project.findFirstOrThrow({
+        where: {
+          id: data.projectId,
+        },
+        select: {
+          id: true,
+          likes: {
+            select: {
+              id: true,
+              developerId: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return newData;
+  }
+
+  async unlikeProject(data: LikeProjectDto, developerId) {
+    try {
+      const [_, newData] = await this.prismaService.$transaction([
+        this.prismaService.projectLike.deleteMany({
+          where: {
+            projectId: data.projectId,
+            developerId: developerId,
+          },
+        }),
+        this.prismaService.project.findFirstOrThrow({
+          where: {
+            id: data.projectId,
+          },
+          select: {
+            id: true,
+            likes: {
+              select: {
+                id: true,
+                developerId: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+      return newData;
+    } catch {
+      throw new BadRequestException("Could not find that project");
+    }
   }
 }

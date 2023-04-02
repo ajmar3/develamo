@@ -3,6 +3,7 @@ import { useDevAuthStore } from "modules/auth/store/auth-store";
 import Image from "next/image";
 import { useEffect } from "react";
 import { useProjectDetailsStore } from "../../stores/project-details.store";
+import { useDashProjectSocketStore } from "modules/dash/stores/project-socket.store";
 
 export type DashProjectCardType = {
   id: string;
@@ -27,17 +28,18 @@ export type DashProjectCardType = {
     id: string;
     title: string;
   }[];
-  repoURL?: string
+  repoURL?: string;
   likes: {
-    developer: {
-      id: string
-    }
-  }[]
+    developerId: string;
+  }[];
 };
 
 export const DashProjectCard: React.FC<DashProjectCardType> = (props) => {
   const projectDetailsStore = useProjectDetailsStore();
-  const developer = useDevAuthStore(state => state.devInfo?.id)
+  const developer = useDevAuthStore((state) => state.devInfo?.id);
+
+  const likeProject = useDashProjectSocketStore((x) => x.likeProject);
+  const unlikeProject = useDashProjectSocketStore((x) => x.unlikeProject);
 
   useEffect(() => {
     if (!projectDetailsStore.modalOpen && projectDetailsStore.projectInfo) {
@@ -45,6 +47,25 @@ export const DashProjectCard: React.FC<DashProjectCardType> = (props) => {
     }
   }, [projectDetailsStore.projectInfo]);
 
+  // using timeouts here to avoid spam
+  let enableClick = true;
+  const handleLikeUnlike = () => {
+    if (!enableClick) return;
+
+    if (props.likes.some((x) => x.developerId == developer)) {
+      unlikeProject(props.id);
+      setTimeout(() => {
+        enableClick = true;
+      }, 1000);
+    } else {
+      likeProject(props.id);
+      setTimeout(() => {
+        enableClick = true;
+      }, 1000);
+    }
+    enableClick = false;
+  };
+  
   return (
     <label
       className="w-full p-4 bg-base-100 shadow-md rounded-sm cursor-pointer hover:shadow-lg"
@@ -81,7 +102,14 @@ export const DashProjectCard: React.FC<DashProjectCardType> = (props) => {
           </div>
         </div>
         <div className="flex gap-2">
-          <button className={props.likes.some(x => x.developer.id == developer) ? "btn btn-primary" : "btn"}>
+          <button
+            className={
+              props.likes.some((x) => x.developerId == developer)
+                ? "btn btn-primary"
+                : "btn"
+            }
+            onClick={() => handleLikeUnlike()}
+          >
             <HandThumbUpIcon className="w-5 h-5" />
           </button>
         </div>
