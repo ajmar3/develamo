@@ -194,7 +194,9 @@ export class ProjectGateway implements OnGatewayDisconnect {
       client.user.id,
       data
     );
-    client.emit("removed-from-project", data.developerId);
+    this.server
+      .to(data.developerId)
+      .emit("removed-from-project", data.developerId);
     this.server.to(data.projectId).emit("updated-developer-list", newTeamInfo);
   }
 

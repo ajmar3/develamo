@@ -30,6 +30,10 @@ export const useNotificationSocketStore = create<INotificationSocketStore>(
       notificationStore.updateNotification(data);
     });
 
+    socket.on("new-notification", (data) => {
+      notificationStore.addNotification(data);
+    });
+
     return {
       socket: socket,
       initSocket: () => {

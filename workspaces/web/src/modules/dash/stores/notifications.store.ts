@@ -29,6 +29,7 @@ export interface InotificationStore {
   notifications: DashNotificationType[]
   setNotifications: (newNotifications: DashNotificationType[]) => void;
   updateNotification: (notification: DashNotificationType) => void;
+  addNotification: (notification: DashNotificationType) => void;
 }
 
 export const useNotificationStore = create<InotificationStore>((set) => {
@@ -42,6 +43,11 @@ export const useNotificationStore = create<InotificationStore>((set) => {
       if (notificationIndex > -1) {
         current[notificationIndex] = notification;
       }
+      return ({ notifications: current });
+    }),
+    addNotification: (notification: DashNotificationType) => set(state => {
+      const current: any[] = JSON.parse(JSON.stringify(state.notifications));
+      current.unshift(notification);
       return ({ notifications: current });
     })
   };
