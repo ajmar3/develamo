@@ -10,8 +10,8 @@ export const DashMyProjects: React.FC = () => {
   if (myProjectsQuery.isLoading || !myProjectsQuery.data)
     return (
       <div className="w-full flex flex-col gap-3 h-full">
-        <div className="w-full flex flex-col h-full flex-1 justify-center items-center mt-32">
-          <LoadingSpinner size="medium" />
+        <div className="w-full flex flex-col h-full flex-1 justify-center items-center mt-10">
+          <LoadingSpinner size="small" />
         </div>
       </div>
     );

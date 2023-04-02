@@ -54,7 +54,7 @@ export const DashSearchResults: React.FC<{
 
   if (searchMutation.isLoading)
     return (
-      <div className="w-full mt-20 flex justify-center items-center">
+      <div className="w-full mt-10 flex justify-center items-center">
         <LoadingSpinner size="small" />
       </div>
     );

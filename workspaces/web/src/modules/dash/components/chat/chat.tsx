@@ -41,7 +41,7 @@ export const DashChat: React.FC = () => {
   if (chatOpening)
     return (
       <div className="w-full h-full flex justify-center items-center bg-base-200 shadow-md">
-        <LoadingSpinner size="medium" />
+        <LoadingSpinner size="small" />
       </div>
     );
 

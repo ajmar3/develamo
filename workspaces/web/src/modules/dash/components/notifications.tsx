@@ -177,7 +177,7 @@ export const DashNotifications: React.FC = () => {
                         : `bg-base-100 p-2 flex items-center`
                     }
                   >
-                    <div className="w-full cursor-pointer">
+                    <div className="w-full cursor-pointer" onClick={() => handleClickOn(x)}>
                       <div className="font-semibold">
                         {x.referencedDeveloper.name
                           ? x.referencedDeveloper.name
@@ -197,7 +197,7 @@ export const DashNotifications: React.FC = () => {
                         : `bg-base-100 p-2 flex items-center`
                     }
                   >
-                    <div className="w-full cursor-pointer">
+                    <div className="w-full cursor-pointer" onClick={() => handleClickOn(x)}>
                       <div className="font-semibold">
                         {x.referencedProject.title}
                       </div>
@@ -219,7 +219,7 @@ export const DashNotifications: React.FC = () => {
                         : `bg-base-100 p-2 flex items-center`
                     }
                   >
-                    <div className="w-full cursor-pointer">
+                    <div className="w-full cursor-pointer" onClick={() => handleClickOn(x)}>
                       <div className="font-semibold">
                         {otherDeveloper?.name
                           ? otherDeveloper.name
