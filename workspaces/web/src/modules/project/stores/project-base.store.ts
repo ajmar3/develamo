@@ -14,7 +14,7 @@ export interface IProjectStore {
   updateChannelMessage: (newMessage: ProjectChatMessageType) => void;
   activeChannelInfo?: ProjectChatChannelType;
   activeChannelId?: string;
-  setActiveChannelId: (newId: string) => void;
+  setActiveChannelId: (newId: string | undefined) => void;
   setActiveChannelInfo: (newInfo?: ProjectChatChannelType) => void;
   activeChannelMessages: ProjectChatMessageType[];
   setActiveChannelMessages: (newMessages: ProjectChatMessageType[]) => void;
@@ -25,6 +25,19 @@ export interface IProjectStore {
   removedFromProjectIndicator: boolean;
   setRemovedFromProjectIndicator: (newState: boolean) => void;
   editProjectDevelopers: (info: ProjectDeveloperType[]) => void;
+  updateChannelInfo: (data: { id: string; name: string }) => void;
+  updateChannelParticipants: (data: {
+    id: string;
+    participants: {
+      id: string;
+      name: string;
+      githubUsername: string;
+      avatarURL: string;
+    }[];
+    name: string;
+  }) => void;
+  removeChannel: (channelId: string) => void;
+  addChannel: (data: ProjectChatChannelType) => void; 
 }
 
 export const useProjectBaseStore = create<IProjectStore>((set) => {
@@ -62,7 +75,7 @@ export const useProjectBaseStore = create<IProjectStore>((set) => {
         }
         return { projectInfo: projectInfo };
       }),
-    setActiveChannelId: (newId: string) =>
+    setActiveChannelId: (newId: string | undefined) =>
       set((state) => ({ activeChannelId: newId })),
     setActiveChannelInfo: (newInfo: any) =>
       set((state) => ({ activeChannelInfo: newInfo })),
@@ -117,5 +130,76 @@ export const useProjectBaseStore = create<IProjectStore>((set) => {
         current.developers = info;
         return { projectInfo: current };
       }),
+    updateChannelInfo: (data: { id: string; name: string }) =>
+      set((state) => {
+        const current: ProjectInfoType = JSON.parse(
+          JSON.stringify(state.projectInfo)
+        );
+        const currentIndex = current.chat.channels.findIndex(
+          (x) => x.id == data.id
+        );
+        if (currentIndex != -1)
+          current.chat.channels[currentIndex].name = data.name;
+
+        const currentActive: ProjectChatChannelType = JSON.parse(
+          JSON.stringify(state.activeChannelInfo)
+        );
+        if (currentActive && currentActive.id == data.id) {
+          currentActive.name = data.name;
+          return { projectInfo: current, activeChannelInfo: currentActive };
+        }
+
+        return { projectInfo: current };
+      }),
+    updateChannelParticipants: (data: {
+      id: string;
+      participants: {
+        id: string;
+        name: string;
+        githubUsername: string;
+        avatarURL: string;
+      }[];
+      name: string;
+    }) =>
+      set((state) => {
+        const current: ProjectInfoType = JSON.parse(
+          JSON.stringify(state.projectInfo)
+        );
+        const currentIndex = current.chat.channels.findIndex(
+          (x) => x.id == data.id
+        );
+        if (currentIndex != -1)
+          current.chat.channels[currentIndex].participants = data.participants;
+
+        const currentActive: ProjectChatChannelType = JSON.parse(
+          JSON.stringify(state.activeChannelInfo)
+        );
+        if (currentActive && currentActive.id == data.id) {
+          currentActive.participants = data.participants;
+          return { projectInfo: current, activeChannelInfo: currentActive };
+        }
+
+        return { projectInfo: current };
+      }),
+    removeChannel: (channelId: string) =>
+      set((state) => {
+        const current: ProjectInfoType = JSON.parse(
+          JSON.stringify(state.projectInfo)
+        );
+        const index = current.chat.channels.findIndex((x) => x.id == channelId);
+        if (index != -1) {
+          const firstHalf = current.chat.channels.slice(0, index);
+          const secondHalf = current.chat.channels.slice(index + 1);
+          current.chat.channels = firstHalf.concat(secondHalf);
+        }
+        return { projectInfo: current };
+      }),
+    addChannel: (data: ProjectChatChannelType) => set(state => {
+      const current: ProjectInfoType = JSON.parse(
+        JSON.stringify(state.projectInfo)
+      );
+      current.chat.channels.push(data);
+      return { projectInfo: current };
+    })
   };
 });

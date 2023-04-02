@@ -73,3 +73,24 @@ export class LikeProjectDto {
   @IsString()
   projectId: string;
 }
+
+export class AddToChannelDto {
+  @IsString()
+  channelId: string;
+
+  @IsString()
+  developerId: string;
+}
+
+export class EditChannelDto {
+  @IsString()
+  channelId: string;
+
+  @IsString()
+  name: string;
+}
+
+export class DeleteLeaveChannelDto {
+  @IsString()
+  channelId: string;
+}

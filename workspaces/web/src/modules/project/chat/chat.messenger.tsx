@@ -2,11 +2,15 @@ import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { use, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { DirectMessageType } from "modules/common/types/chat.types";
-import { ArrowLeftIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  EllipsisVerticalIcon,
+} from "@heroicons/react/24/outline";
 import { ProjectChatMessageType } from "modules/project/types/chat-types";
 import { useProjectBaseStore } from "modules/project/stores/project-base.store";
 import { useProjectAuthStore } from "modules/auth/store/project-auth-store";
 import { useProjectSocketStore } from "modules/project/stores/project-socket.store";
+import { ManageChatModal } from "./manage-chat.modal";
 
 export const ProjectChatMessenger: React.FC = () => {
   const [newMessageInput, setNewMessageInput] = useState("");
@@ -15,12 +19,13 @@ export const ProjectChatMessenger: React.FC = () => {
   const scrollRef = useRef<any>(null);
 
   const channelInfo = useProjectBaseStore((state) => state.activeChannelInfo);
-  const channelMessages = useProjectBaseStore((state) => state.activeChannelMessages);
+  const channelMessages = useProjectBaseStore(
+    (state) => state.activeChannelMessages
+  );
   const developerId = useProjectAuthStore((state) => state.devInfo?.id);
 
-  const createMessage = useProjectSocketStore(
-    (state) => state.createMessage
-  );
+  const createMessage = useProjectSocketStore((state) => state.createMessage);
+  const leaveChannel = useProjectSocketStore((state) => state.leaveChannel);
 
   useEffect(() => {
     setNewMessageInput("");
@@ -51,10 +56,6 @@ export const ProjectChatMessenger: React.FC = () => {
       </div>
     );
 
-  const otherDeveloper = channelInfo.participants.find(
-    (x) => x.id != developerId
-  );
-
   const sendMessage = () => {
     if (!newMessageInput) return;
     if (!sendEnabled) {
@@ -66,6 +67,39 @@ export const ProjectChatMessenger: React.FC = () => {
     });
     setSendEnabled(false);
     setNewMessageInput("");
+  };
+
+  const handleLeave = () => {
+    if (channelInfo) {
+      leaveChannel(channelInfo.id);
+    }
+  };
+
+  const getOptionsMenu = () => {
+    if (!channelInfo || channelInfo.name.toLowerCase() == "general")
+      return <></>;
+    else if (channelInfo.admins.find((x) => x.id == developerId))
+      return (
+        <label htmlFor="manage-chat-modal">
+          <EllipsisVerticalIcon className="w-8 h-8 cursor-pointer" />
+        </label>
+      );
+    else
+      return (
+        <div className="dropdown">
+          <label tabIndex={0}>
+            <EllipsisVerticalIcon className="w-8 h-8 cursor-pointer" />
+          </label>
+          <ul
+            tabIndex={0}
+            className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+          >
+            <li onClick={() => handleLeave()}>
+              <a>Leave channel</a>
+            </li>
+          </ul>
+        </div>
+      );
   };
 
   return (
@@ -85,7 +119,7 @@ export const ProjectChatMessenger: React.FC = () => {
             ))}
           </div>
         </div>
-        <EllipsisVerticalIcon className="w-8 h-8 cursor-pointer" />
+        {getOptionsMenu()}
       </div>
       <div className="h-[calc(100%-7.5rem)] w-full flex flex-col gap-3 overflow-y-scroll p-3">
         {channelInfo.messages.length > 0 ? (
@@ -140,6 +174,7 @@ export const ProjectChatMessenger: React.FC = () => {
           Send
         </button>
       </div>
+      <ManageChatModal />
     </div>
   );
 };

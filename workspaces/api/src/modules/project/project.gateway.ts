@@ -12,8 +12,11 @@ import { IValidatedSocket } from "../sockets/socket.interfaces";
 import { ConnectProjectWebsocketDto } from "../sockets/sockets.dtos";
 import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
 import {
+  AddToChannelDto,
   CreateChannelDto,
   CreateChannelMessageDto,
+  DeleteLeaveChannelDto,
+  EditChannelDto,
   EditProjectDto,
   LikeProjectDto,
   RemoveDeveloperDto,
@@ -218,5 +221,73 @@ export class ProjectGateway implements OnGatewayDisconnect {
     );
 
     client.emit("updated-project-likes", updatedLikeInfo);
+  }
+
+  @SubscribeMessage("add-developer-to-channel")
+  async addToChannel(client: IValidatedSocket, data: AddToChannelDto) {
+    const updatedInfo = await this.projectService.addToChannel(
+      data,
+      client.user.id
+    );
+    updatedInfo.participants.forEach((x) => {
+      // we do this so we only emit the message to those who have access
+      this.server.to(x.id).emit("updated-channel-participants", updatedInfo);
+    });
+    this.server.to(data.developerId).emit("added-to-channel", updatedInfo);
+    client.emit("updated-channel-participants", updatedInfo);
+  }
+
+  @SubscribeMessage("remove-developer-from-channel")
+  async removeFromChannel(client: IValidatedSocket, data: AddToChannelDto) {
+    const updatedInfo = await this.projectService.removeFromChannel(
+      data,
+      client.user.id
+    );
+    this.server
+      .to(data.developerId)
+      .emit("removed-from-channel", updatedInfo.id);
+    client.emit("updated-channel-participants", updatedInfo);
+  }
+
+  @SubscribeMessage("edit-channel")
+  async editChannel(client: IValidatedSocket, data: EditChannelDto) {
+    const updatedInfo = await this.projectService.editChannel(
+      data,
+      client.user.id
+    );
+    client.emit("updated-channel-info", updatedInfo);
+    client.emit("updated-channel-info", updatedInfo);
+
+    updatedInfo.participants.forEach((x) => {
+      // we do this so we only emit the message to those who have access
+      this.server.to(x.id).emit("updated-channel-info", updatedInfo);
+    });
+  }
+
+  @SubscribeMessage("delete-channel")
+  async deleteChannel(client: IValidatedSocket, data: DeleteLeaveChannelDto) {
+    const deletedInfo = await this.projectService.deleteChannel(
+      data,
+      client.user.id
+    );
+
+    deletedInfo.participants.forEach((x) => {
+      // we do this so we only emit the message to those who have access
+      this.server.to(x.id).emit("active-channel-deleted", deletedInfo.id);
+    });
+    client.emit("deleted-channel", deletedInfo.id);
+  }
+
+  @SubscribeMessage("leave-channel")
+  async leaveChannel(client: IValidatedSocket, data: DeleteLeaveChannelDto) {
+    const updatedInfo = await this.projectService.leaveChannel(
+      data,
+      client.user.id
+    );
+    updatedInfo.participants.forEach((x) => {
+      // we do this so we only emit the message to those who have access
+      this.server.to(x.id).emit("updated-channel-participants", updatedInfo.id);
+    });
+    client.emit("deleted-channel", updatedInfo.id);
   }
 }

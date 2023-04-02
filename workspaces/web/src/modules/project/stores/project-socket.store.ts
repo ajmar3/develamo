@@ -26,6 +26,11 @@ export interface IProjectSocketStore {
   deleteProject: (projectId: string) => void;
   editProject: (data: EditProjectType, projectId: string) => void;
   removeDeveloperFromProject: (data: RemoveDevFromProjectType) => void;
+  addDeveloperToChannel: (data: { developerId: string; channelId: string }) => void;
+  removeDeveloperFromChannel: (data: { developerId: string; channelId: string }) => void;
+  editChannel: (data: { name: string; channelId: string }) => void;
+  deleteChannel: (channelId: string) => void;
+  leaveChannel: (channelId: string) => void;
 }
 
 export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
@@ -83,6 +88,35 @@ export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
     feedbackStore.addMessage(error);
   });
 
+  socket.on("updated-channel-participants", data => {
+    projectStore.updateChannelParticipants(data);
+  });
+
+  socket.on("updated-channel-info", data => {
+    projectStore.updateChannelInfo(data);
+  });
+
+  socket.on("deleted-channel", (deletedId: string) => {
+    projectStore.setActiveChannelId(undefined);
+    projectStore.setActiveChannelInfo(undefined);
+    projectStore.removeChannel(deletedId);
+  });
+
+  socket.on("active-channel-deleted", (deletedId: string) => {
+    projectStore.setActiveChannelId(undefined);
+    projectStore.setActiveChannelInfo(undefined);
+    projectStore.removeChannel(deletedId);
+  });
+
+  socket.on("added-to-channel", (data) => {
+    projectStore.addChannel(data);
+  });
+
+  socket.on("removed-from-channel", (data) => {
+    projectStore.removeChannel(data);
+  });
+
+
   return {
     socket: socket,
     initSocket: (data: { developerId: string; projectId: string }) => {
@@ -125,5 +159,20 @@ export const useProjectSocketStore = create<IProjectSocketStore>((set) => {
     removeDeveloperFromProject: (data: RemoveDevFromProjectType) => {
       socket.emit("remove-developer-from-project", data);
     },
+    addDeveloperToChannel: (data: { developerId: string; channelId: string }) => {
+      socket.emit("add-developer-to-channel", data);
+    },
+    removeDeveloperFromChannel: (data: { developerId: string; channelId: string }) => {
+      socket.emit("remove-developer-from-channel", data);
+    },
+    editChannel: (data: { name: string; channelId: string }) => {
+      socket.emit("edit-channel", data);
+    },
+    deleteChannel: (channelId: string) => {
+      socket.emit("delete-channel", { channelId: channelId });
+    },
+    leaveChannel: (channelId: string) => {
+      socket.emit("leave-channel", { channelId: channelId });
+    }
   };
 });

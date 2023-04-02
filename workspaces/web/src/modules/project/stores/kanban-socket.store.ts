@@ -28,10 +28,7 @@ export interface IProjectSocketStore {
     newOrderIndex: number;
     oldOrderIndex: number;
   }) => void;
-  editTicketList: (data: {
-    ticketListId: string,
-    newTitle: string
-  }) => void;
+  editTicketList: (data: { ticketListId: string; newTitle: string }) => void;
 }
 
 export const useKanbanSocketStore = create<IProjectSocketStore>((set) => {
@@ -98,11 +95,8 @@ export const useKanbanSocketStore = create<IProjectSocketStore>((set) => {
     }) => {
       socket.emit("reorder-ticket-list", data);
     },
-    editTicketList: (data: {
-      ticketListId: string,
-      newTitle: string
-    }) => {
+    editTicketList: (data: { ticketListId: string; newTitle: string }) => {
       socket.emit("edit-ticket-list", data);
-    }
+    },
   };
 });

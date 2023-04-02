@@ -6,9 +6,12 @@ import {
 import { CreateProjectApplicationDto } from "../connection/connection.dtos";
 import { PrismaService } from "../database/prisma.service";
 import {
+  AddToChannelDto,
   CreateChannelDto,
   CreateChannelMessageDto,
   CreateProjectDto,
+  DeleteLeaveChannelDto,
+  EditChannelDto,
   EditProjectDto,
   LikeProjectDto,
   ProjectFeedDto,
@@ -1170,5 +1173,317 @@ export class ProjectService {
     } catch {
       throw new BadRequestException("Could not find that project");
     }
+  }
+
+  async addToChannel(data: AddToChannelDto, developerId: string) {
+    const channel = await this.prismaService.projectChatChannel.findFirst({
+      where: {
+        id: data.channelId,
+      },
+      select: {
+        id: true,
+        admins: {
+          select: {
+            id: true,
+          },
+        },
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+        projectId: true,
+      },
+    });
+
+    if (!channel) throw new BadRequestException("Could not find that channel");
+
+    if (!channel.admins.map((x) => x.id).includes(developerId))
+      throw new UnauthorizedException(
+        "Only channel admins can add channel members"
+      );
+
+    if (channel.participants.map((x) => x.id).includes(data.developerId))
+      throw new BadRequestException("That person is already in the channel");
+
+    const updatedChannelParticpants =
+      await this.prismaService.projectChatChannel.update({
+        where: {
+          id: data.channelId,
+        },
+        data: {
+          participants: {
+            set: [
+              ...channel.participants.map((x) => ({ id: x.id })),
+              { id: data.developerId },
+            ],
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          createdAt: true,
+          participants: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          admins: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          messages: {
+            select: {
+              channelId: true,
+              sentAt: true,
+              sender: {
+                select: {
+                  id: true,
+                  githubUsername: true,
+                  name: true,
+                  avatarURL: true,
+                },
+              },
+              seenBy: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+            orderBy: {
+              sentAt: "desc",
+            },
+            take: 1,
+          },
+        },
+      });
+
+    await this.notifService.createProjectNotification({
+      developerId: data.developerId,
+      referencedProjectId: channel.projectId,
+      message: "Someone has added you to a channel!",
+    });
+
+    return updatedChannelParticpants;
+  }
+
+  async removeFromChannel(data: AddToChannelDto, developerId: string) {
+    const channel = await this.prismaService.projectChatChannel.findFirst({
+      where: {
+        id: data.channelId,
+      },
+      select: {
+        id: true,
+        name: true,
+        admins: {
+          select: {
+            id: true,
+          },
+        },
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+        projectId: true,
+      },
+    });
+
+    if (!channel) throw new BadRequestException("Could not find that channel");
+
+    if (channel.name.toLowerCase() == "general")
+      throw new BadRequestException(
+        "Cannot remove developers from general chat"
+      );
+
+    if (!channel.admins.map((x) => x.id).includes(developerId))
+      throw new UnauthorizedException(
+        "Only channel admins can remove channel members"
+      );
+
+    if (!channel.participants.map((x) => x.id).includes(data.developerId))
+      throw new BadRequestException("That person is not in the channel");
+
+    const updatedChannelParticpants =
+      await this.prismaService.projectChatChannel.update({
+        where: {
+          id: data.channelId,
+        },
+        data: {
+          participants: {
+            set: channel.participants
+              .filter((x) => x.id != data.developerId)
+              .map((x) => ({ id: x.id })),
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          participants: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+        },
+      });
+
+    return updatedChannelParticpants;
+  }
+
+  async editChannel(data: EditChannelDto, developerId: string) {
+    if (data.name.toLowerCase() == "general")
+      throw new BadRequestException("Cannot name a channel 'General'");
+
+    const channel = await this.prismaService.projectChatChannel.findFirst({
+      where: {
+        id: data.channelId,
+      },
+      select: {
+        id: true,
+        name: true,
+        admins: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!channel) throw new BadRequestException("Could not find channel");
+
+    if (!channel.admins.map((x) => x.id).includes(developerId))
+      throw new UnauthorizedException(
+        "Only channel admins can remove channel members"
+      );
+
+    if (channel.name.toLowerCase() == "general")
+      throw new BadRequestException("Cannot change the general channel");
+
+    const updatedChannelInfo =
+      await this.prismaService.projectChatChannel.update({
+        where: {
+          id: data.channelId,
+        },
+        data: {
+          name: data.name,
+        },
+        select: {
+          id: true,
+          name: true,
+          participants: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    return updatedChannelInfo;
+  }
+
+  async deleteChannel(data: DeleteLeaveChannelDto, developerId: string) {
+    const channel = await this.prismaService.projectChatChannel.findFirst({
+      where: {
+        id: data.channelId,
+      },
+      select: {
+        id: true,
+        name: true,
+        admins: {
+          select: {
+            id: true,
+          },
+        },
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!channel) throw new BadRequestException("Could not find channel");
+
+    if (!channel.admins.map((x) => x.id).includes(developerId))
+      throw new UnauthorizedException(
+        "Only channel admins can delete a channel"
+      );
+
+    if (channel.name.toLowerCase() == "general")
+      throw new BadRequestException("Cannot delete the general channel");
+
+    await this.prismaService.projectChatChannel.delete({
+      where: {
+        id: data.channelId,
+      },
+    });
+
+    return channel;
+  }
+
+  async leaveChannel(data: DeleteLeaveChannelDto, developerId: string) {
+    const channel = await this.prismaService.projectChatChannel.findFirst({
+      where: {
+        id: data.channelId,
+      },
+      select: {
+        id: true,
+        name: true,
+        admins: {
+          select: {
+            id: true,
+          },
+        },
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!channel) throw new BadRequestException("Could not find channel");
+
+    if (!channel.participants.map((x) => x.id).includes(developerId))
+      throw new BadRequestException("You are not in the channel");
+
+    if (channel.name.toLowerCase() == "general")
+      throw new BadRequestException("Cannot leave the general channel");
+
+    const updatedChannel = await this.prismaService.projectChatChannel.update({
+      where: {
+        id: data.channelId,
+      },
+      data: {
+        participants: {
+          set: channel.participants
+            .filter((x) => x.id != developerId)
+            .map((x) => ({ id: x.id })),
+        },
+      },
+      select: {
+        id: true,
+        participants: {
+          select: {
+            name: true,
+            id: true,
+            githubUsername: true,
+            avatarURL: true,
+          },
+        },
+      },
+    });
+
+    return updatedChannel;
   }
 }
