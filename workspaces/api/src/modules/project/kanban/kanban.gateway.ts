@@ -20,6 +20,7 @@ import {
   EditTicketListDto,
 } from "./kanban.dto";
 import { KanbanService } from "./kanban.service";
+import { CachingService } from "src/modules/caching/caching.service";
 
 @WebSocketGateway({
   cors: {
@@ -32,7 +33,10 @@ import { KanbanService } from "./kanban.service";
 @UsePipes(new WSValidationPipe())
 @UseFilters(new WsExceptionFilter())
 export class KanbanGateway {
-  constructor(private kanbanService: KanbanService) {}
+  constructor(
+    private kanbanService: KanbanService,
+    private cacheService: CachingService
+  ) {}
 
   @WebSocketServer() server: Server;
 
@@ -48,6 +52,8 @@ export class KanbanGateway {
     client.join("kanban-" + data.projectId);
     client.emit("ticket-list-info", info);
     client.emit("connected");
+
+    await this.cacheService.setUserOnline(client.user.id, "kanban");
   }
 
   @SubscribeMessage("create-ticket-list")

@@ -14,10 +14,14 @@ import {
   ProjectFeedDto,
   RemoveDeveloperDto,
 } from "./project.dtos";
+import { NotificationService } from "../notification/notification.service";
 
 @Injectable()
 export class ProjectService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private notifService: NotificationService
+  ) {}
 
   async getAllTags() {
     return await this.prismaService.tag.findMany();
@@ -340,6 +344,18 @@ export class ProjectService {
     data: CreateProjectApplicationDto,
     developerId: string
   ) {
+    const project = await this.prismaService.project.findFirst({
+      where: {
+        id: data.projectId,
+      },
+      select: {
+        id: true,
+        ownerId: true,
+      },
+    });
+
+    if (!project) throw new BadRequestException("could not find that project");
+
     const existingApplication =
       await this.prismaService.projectApplication.findFirst({
         where: {
@@ -362,6 +378,12 @@ export class ProjectService {
       },
     });
 
+    await this.notifService.createProjectNotification({
+      developerId: project.ownerId,
+      referencedProjectId: project.id,
+      message: "Someone has requested to join your project",
+    });
+
     return newApplication;
   }
 
@@ -372,6 +394,7 @@ export class ProjectService {
       },
       select: {
         ownerId: true,
+        id: true,
         chat: {
           select: {
             id: true,
@@ -521,6 +544,15 @@ export class ProjectService {
           },
         },
       });
+
+      if (developerId != project.ownerId) {
+        console.log("hello there");
+        await this.notifService.createProjectNotification({
+          developerId: project.ownerId,
+          referencedProjectId: project.id,
+          message: "Someone has added you to a channel!",
+        });
+      }
 
       return newChannel;
     }
@@ -716,6 +748,7 @@ export class ProjectService {
         id: application.project.id,
       },
       select: {
+        id: true,
         developers: {
           select: {
             id: true,
@@ -778,6 +811,12 @@ export class ProjectService {
           ],
         },
       },
+    });
+
+    await this.notifService.createProjectNotification({
+      developerId: application.requesterId,
+      referencedProjectId: project.id,
+      message: "You have been added to a project!",
     });
 
     return application.project.id;
@@ -1040,6 +1079,12 @@ export class ProjectService {
         },
       }),
     ]);
+
+    await this.notifService.createProjectNotification({
+      developerId: data.developerId,
+      referencedProjectId: project.id,
+      message: "You have been removed from the project!",
+    });
 
     return project.developers.filter((x) => x.id != data.developerId);
   }

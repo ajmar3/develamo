@@ -43,6 +43,8 @@ model Developer {
   seenProjectMessages  ProjectChatMessage[] @relation(name: "seenProjectMessages")
   projectApplications ProjectApplication[]
   assignedTickets Ticket[]
+  notifications Notification[] @relation(name: "developer_notifications")
+  referencingNotifications Notification[] @relation(name: "referencingNotifications")
 }
 
 model Tag {
@@ -99,6 +101,7 @@ model Project {
   applications  ProjectApplication[]
   ticketLists TicketList[]
   tickets Ticket[]
+  notifications Notification[]
 }
 
 model ProjectLike {
@@ -128,6 +131,7 @@ model DirectMessageChat {
   participantsConnections Connection[]
   messages DirectMessage[]
   createdAt DateTime  @default(now())
+  notifications Notification[]
 }
 
 model DirectMessage {
@@ -193,4 +197,21 @@ model Ticket {
   orderIndex  Int
   createdAt DateTime  @default(now())
   editedAt DateTime @default(now())
+}
+
+model Notification {
+  id  String  @id @default(uuid())
+  type  Int
+  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade, name: "developer_notifications")
+  developerId String
+  referencedDeveloper Developer? @relation(fields: [referencedDeveloperId], references: [id], name: "referencingNotifications")
+  referencedDeveloperId String?
+  referencedChat DirectMessageChat? @relation(fields: [referencedChatId], references: [id], onDelete: Cascade)
+  referencedChatId String?
+  referencedProject Project? @relation(fields: [referencedProjectId], references: [id], onDelete: Cascade)
+  referencedProjectId String?
+  message String
+  seen  Boolean @default(false)
+  createdAt DateTime  @default(now())
+  seenAt DateTime?
 }

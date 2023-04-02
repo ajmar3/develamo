@@ -1,5 +1,6 @@
 import { UseFilters, UseGuards, UsePipes } from "@nestjs/common";
 import {
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -17,6 +18,7 @@ import {
   RemoveDeveloperDto,
 } from "./project.dtos";
 import { ProjectService } from "./project.service";
+import { CachingService } from "../caching/caching.service";
 
 @WebSocketGateway({
   cors: {
@@ -28,8 +30,18 @@ import { ProjectService } from "./project.service";
 @UseGuards(WsGuard)
 @UsePipes(new WSValidationPipe())
 @UseFilters(new WsExceptionFilter())
-export class ProjectGateway {
-  constructor(private projectService: ProjectService) {}
+export class ProjectGateway implements OnGatewayDisconnect {
+  constructor(
+    private projectService: ProjectService,
+    private cacheService: CachingService
+  ) {}
+
+  async handleDisconnect(client: IValidatedSocket) {
+    if (client.user) {
+      client.leave(client.user.id);
+      await this.cacheService.setUserOffline(client.user.id, "project");
+    }
+  }
 
   @WebSocketServer() server: Server;
 
@@ -45,6 +57,8 @@ export class ProjectGateway {
     client.join(data.projectId);
     client.join(client.user.id);
     client.emit("project-info", info);
+
+    await this.cacheService.setUserOnline(client.user.id, "project");
   }
 
   @SubscribeMessage("create-channel")
@@ -85,12 +99,12 @@ export class ProjectGateway {
     client: IValidatedSocket,
     data: CreateProjectApplicationDto
   ) {
-    const newApplication = await this.projectService.createProjectApplication(
+    const application = await this.projectService.createProjectApplication(
       data,
       client.user.id
     );
 
-    client.emit("new-application", newApplication);
+    client.emit("new-application", application);
   }
 
   @SubscribeMessage("get-project-applications")

@@ -10,6 +10,7 @@ import { DatabaseModule } from "../database/database.module";
 import { DeveloperModule } from "../developer/developer.module";
 import { ProjectModule } from "../project/project.module";
 import { SearchModule } from "../search/search.module";
+import { NotificationModule } from "../notification/notification.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SearchModule } from "../search/search.module";
     ConnectionModule,
     SearchModule,
     ChatModule,
+    NotificationModule,
     CacheModule.register({ isGlobal: true }),
   ],
   controllers: [],

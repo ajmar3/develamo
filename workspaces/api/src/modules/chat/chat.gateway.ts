@@ -1,18 +1,11 @@
-import {
-  CACHE_MANAGER,
-  Inject,
-  UseFilters,
-  UseGuards,
-  UsePipes,
-} from "@nestjs/common";
-import { Cache } from "cache-manager";
+import { UseFilters, UseGuards, UsePipes } from "@nestjs/common";
 import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { WsGuard } from "../auth/ws.guard";
 import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
 import { IValidatedSocket } from "../sockets/socket.interfaces";
@@ -24,6 +17,7 @@ import {
   ViewMessageDto,
 } from "./chat.dtos";
 import { ConnectWebsocketDto } from "../sockets/sockets.dtos";
+import { CachingService } from "../caching/caching.service";
 
 @WebSocketGateway({
   cors: {
@@ -38,13 +32,14 @@ import { ConnectWebsocketDto } from "../sockets/sockets.dtos";
 export class ChatGateway implements OnGatewayDisconnect {
   constructor(
     private chatService: ChatService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    private cacheService: CachingService
   ) {}
 
   @WebSocketServer() server: Server;
 
-  async handleDisconnect(client: Socket) {
-    await this.cacheManager.del(client.id);
+  async handleDisconnect(client: IValidatedSocket) {
+    if (client.user)
+      await this.cacheService.setUserOffline(client.user.id, "chat");
   }
 
   @SubscribeMessage("create-direct-message-chat")
@@ -108,6 +103,7 @@ export class ChatGateway implements OnGatewayDisconnect {
     client: IValidatedSocket,
     data: ConnectWebsocketDto
   ) {
+    await this.cacheService.setUserOnline(client.user.id, "chat");
     const chatInfo = await this.chatService.getChatInfoForDeveloper(
       client.user.id
     );

@@ -1,21 +1,16 @@
-import {
-  BadRequestException,
-  CACHE_MANAGER,
-  Inject,
-  Injectable,
-} from "@nestjs/common";
-import { Cache } from "cache-manager";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service";
 import {
   CreateConnectionRequestDto,
   RespondConnectionRequestDto,
 } from "./connection.dtos";
+import { NotificationService } from "../notification/notification.service";
 
 @Injectable()
 export class ConnectionService {
   constructor(
     private prismaServie: PrismaService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    private notifService: NotificationService
   ) {}
 
   async getConnectionsForDeveloper(developerId: string) {
@@ -148,7 +143,13 @@ export class ConnectionService {
         },
       });
 
-    return newConnectionRequest;
+    await this.notifService.createDeveloperNotification({
+      developerId: model.requestedId,
+      referencedDeveloperId: developerId,
+      message: "You have a new connection request!",
+    });
+
+    return { request: newConnectionRequest };
   }
 
   async acceptConnectionRequest(
@@ -223,6 +224,12 @@ export class ConnectionService {
           },
         },
       },
+    });
+
+    await this.notifService.createDeveloperNotification({
+      developerId: updatedRequest.requesterId,
+      referencedDeveloperId: developerId,
+      message: "Connection request accepted!",
     });
 
     return {

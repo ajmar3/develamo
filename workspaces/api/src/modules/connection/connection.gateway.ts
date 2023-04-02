@@ -1,22 +1,14 @@
-import {
-  CACHE_MANAGER,
-  Inject,
-  UseFilters,
-  UseGuards,
-  UsePipes,
-} from "@nestjs/common";
-import { Cache } from "cache-manager";
+import { UseFilters, UseGuards, UsePipes } from "@nestjs/common";
 import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { WsGuard } from "../auth/ws.guard";
 import {
   CreateConnectionRequestDto,
-  CreateProjectApplicationDto,
   RespondConnectionRequestDto,
 } from "./connection.dtos";
 import { ConnectionService } from "./connection.service";
@@ -24,6 +16,7 @@ import { WsExceptionFilter, WSValidationPipe } from "../sockets/sockets.pipes";
 import { ConnectWebsocketDto } from "../sockets/sockets.dtos";
 import { IValidatedSocket } from "../sockets/socket.interfaces";
 import { ProjectService } from "../project/project.service";
+import { CachingService } from "../caching/caching.service";
 
 @WebSocketGateway({
   cors: {
@@ -39,13 +32,14 @@ export class ConnectionGateway implements OnGatewayDisconnect {
   constructor(
     private conService: ConnectionService,
     private projectService: ProjectService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    private cacheService: CachingService
   ) {}
 
   @WebSocketServer() server: Server;
 
-  async handleDisconnect(client: Socket) {
-    await this.cacheManager.del(client.id);
+  async handleDisconnect(client: IValidatedSocket) {
+    if (client.user)
+      await this.cacheService.setUserOffline(client.user.id, "connection");
   }
 
   @SubscribeMessage("request-connection")
@@ -53,20 +47,22 @@ export class ConnectionGateway implements OnGatewayDisconnect {
     client: IValidatedSocket,
     data: CreateConnectionRequestDto
   ) {
-    const newConnectionRequest = await this.conService.createConnectionRequest(
+    const res = await this.conService.createConnectionRequest(
       data,
       client.user.id
     );
 
-    client.emit("new-sent-request", newConnectionRequest);
+    client.emit("new-sent-request", res.request);
 
-    const recieverClientId = (await this.cacheManager.get(
-      data.requestedId
-    )) as string;
-    if (recieverClientId) {
+    const recieverClientConnectionId = await this.cacheService.checkUserOnline(
+      data.requestedId,
+      "connection"
+    );
+
+    if (recieverClientConnectionId) {
       this.server
-        .to(recieverClientId)
-        .emit("new-connection-request", newConnectionRequest);
+        .to(recieverClientConnectionId)
+        .emit("new-connection-request", res);
     }
   }
 
@@ -75,11 +71,14 @@ export class ConnectionGateway implements OnGatewayDisconnect {
     client: IValidatedSocket,
     data: RespondConnectionRequestDto
   ) {
-    const newConData = await this.conService.acceptConnectionRequest(
+    const res = await this.conService.acceptConnectionRequest(
       data,
       client.user.id
     );
-    client.emit("connection-request-response", newConData);
+    client.emit("connection-request-response", {
+      requests: res.requests,
+      connections: res.connections,
+    });
   }
 
   @SubscribeMessage("reject-request")
@@ -110,10 +109,6 @@ export class ConnectionGateway implements OnGatewayDisconnect {
     client.emit("connection-update", connections);
     client.emit("project-aplication-update", projectApplications);
 
-    await this.cacheManager.set(
-      data.developerId,
-      client.id,
-      parseInt(process.env.WEBSOCKET_CONNECTION_TTL)
-    );
+    await this.cacheService.setUserOnline(client.user.id, "connection");
   }
 }
