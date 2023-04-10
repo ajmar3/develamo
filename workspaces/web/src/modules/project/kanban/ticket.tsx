@@ -25,7 +25,7 @@ export const KanbanTicket: React.FC<TicketType | any> = (props) => {
 
   return (
     <div
-      className="w-full p-2 bg-base-100 shadow-md rounded-md cursor-pointer"
+      className="w-full p-2 bg-base-100 shadow-md rounded-md cursor-pointer select-none"
       ref={setNodeRef}
       {...attributes}
       style={style}

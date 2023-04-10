@@ -68,7 +68,7 @@ export const KanbanTicketList: React.FC<TicketListType> = (props) => {
   return (
     <SortableContext items={props.tickets}>
       <div
-        className="w-full py-2 px-3 bg-base-200 rounded-md shadow-md flex flex-col gap-3"
+        className="w-full py-2 px-3 bg-base-200 rounded-md shadow-md flex flex-col gap-3 select-none cursor-default"
         ref={setNodeRef}
         {...attributes}
         style={style}
