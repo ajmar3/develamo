@@ -9,7 +9,11 @@ import { lastValueFrom } from "rxjs";
 import { ConnectionService } from "../connection/connection.service";
 import { DeveloperService } from "../developer/developer.service";
 import { ProjectService } from "../project/project.service";
-import { AdminLoginDto, AdminTokenGenerateDto } from "./auth.dtos";
+import {
+  AdminLoginDto,
+  AdminTokenGenerateDto,
+  VerifyTokenDto,
+} from "./auth.dtos";
 import { AuthRolesEnum } from "./auth.enums";
 
 @Injectable()
@@ -146,5 +150,10 @@ export class AuthService {
       projectId,
       developerId
     );
+  }
+
+  async verifyToken(data: VerifyTokenDto) {
+    const userInfo = await this.jwtService.decode(data.token);
+    return userInfo;
   }
 }

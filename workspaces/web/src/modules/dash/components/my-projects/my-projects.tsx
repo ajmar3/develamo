@@ -103,6 +103,48 @@ export const DashMyProjects: React.FC = () => {
             </div>
           )}
         </div>
+        <div className="w-full">
+          <div className="text-lg text-white mb-2">Projects Develamo has found for you</div>
+          {myProjectsQuery.data.projectSearchRequestAns.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2">
+              {myProjectsQuery.data.projectSearchRequestAns.map((request) => (
+                <Link
+                  href={"/project/"+request.project.id+"/chat"}
+                  key={request.project.id}
+                  className="bg-base-100 rounded-md w-full h-32 p-3 cursor-pointer hover:shadow-md flex flex-col justify-between"
+                >
+                  <div>{request.project.title}</div>
+                  {request.project.developers.length > 0 ? (
+                    <div className="flex gap-1 max-w-full overflow-x-hidden">
+                      {request.project.developers.map((dev) => (
+                        <Image
+                          src={dev.avatarURL}
+                          width={40}
+                          height={40}
+                          alt={dev.githubUsername}
+                          key={dev.id}
+                          className="rounded-full border p-1"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="ml-2 text-base-content text-opacity-70">
+                      No teammates yet
+                    </div>
+                  )}
+
+                  <div className="text-sm">
+                    {new Date(request.project.createdAt).toLocaleDateString()}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="w-full text-center my-8">
+              Develamo has no project suggestions yet!
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

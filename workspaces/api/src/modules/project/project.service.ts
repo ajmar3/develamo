@@ -10,6 +10,7 @@ import {
   CreateChannelDto,
   CreateChannelMessageDto,
   CreateProjectDto,
+  CreateProjectSearchRequestDto,
   DeleteLeaveChannelDto,
   EditChannelDto,
   EditProjectDto,
@@ -18,12 +19,15 @@ import {
   RemoveDeveloperDto,
 } from "./project.dtos";
 import { NotificationService } from "../notification/notification.service";
+import { Cron } from "@nestjs/schedule";
+import { CachingService } from "../caching/caching.service";
 
 @Injectable()
 export class ProjectService {
   constructor(
     private prismaService: PrismaService,
-    private notifService: NotificationService
+    private notifService: NotificationService,
+    private cachingService: CachingService
   ) {}
 
   async getAllTags() {
@@ -147,13 +151,40 @@ export class ProjectService {
             },
           },
         },
+        projectSearchRequestAns: {
+          select: {
+            id: true,
+            createdAt: true,
+            project: {
+              select: {
+                title: true,
+                tags: true,
+                id: true,
+                description: true,
+                createdAt: true,
+                finished: true,
+                finishedAt: true,
+                developers: {
+                  select: {
+                    avatarURL: true,
+                    id: true,
+                    name: true,
+                    githubUsername: true,
+                  },
+                },
+                likes: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    return {
-      ownedProjects: owned.ownedProjects,
-      projects: owned.projects,
-    };
+    return owned;
   }
 
   async createProject(model: CreateProjectDto, developerId: string) {
@@ -561,57 +592,63 @@ export class ProjectService {
   }
 
   async openChannel(developerId: string, channelId: string) {
-    const channel = await this.prismaService.projectChatChannel.findFirst({
-      where: {
-        id: channelId,
-      },
-      select: {
-        id: true,
-        name: true,
-        participants: {
-          select: {
-            id: true,
-            githubUsername: true,
-            name: true,
-            avatarURL: true,
-          },
-        },
-        admins: {
-          select: {
-            id: true,
-            githubUsername: true,
-            name: true,
-            avatarURL: true,
-          },
-        },
-        messages: {
-          select: {
-            id: true,
-            sentAt: true,
-            sender: {
-              select: {
-                id: true,
-                githubUsername: true,
-                name: true,
-                avatarURL: true,
-              },
-            },
-            seenBy: {
-              select: {
-                id: true,
-              },
-            },
-            text: true,
-          },
-          orderBy: {
-            sentAt: "desc",
-          },
-        },
-      },
-    });
+    let channel = await this.cachingService.getChannelInfoFromCache(channelId);
 
     if (!channel) {
-      throw new BadRequestException("Could not find that channel");
+      channel = await this.prismaService.projectChatChannel.findFirst({
+        where: {
+          id: channelId,
+        },
+        select: {
+          id: true,
+          name: true,
+          participants: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          admins: {
+            select: {
+              id: true,
+              githubUsername: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          messages: {
+            select: {
+              id: true,
+              sentAt: true,
+              sender: {
+                select: {
+                  id: true,
+                  githubUsername: true,
+                  name: true,
+                  avatarURL: true,
+                },
+              },
+              seenBy: {
+                select: {
+                  id: true,
+                },
+              },
+              text: true,
+            },
+            orderBy: {
+              sentAt: "desc",
+            },
+          },
+        },
+      });
+
+      if (!channel) {
+        throw new BadRequestException("Could not find that channel");
+      }
+
+      await this.cachingService.writeChannelInfoToCache(channel.id, channel);
     }
 
     if (!channel.participants.some((x) => x.id == developerId)) {
@@ -622,18 +659,24 @@ export class ProjectService {
   }
 
   async createMessage(developerId: string, data: CreateChannelMessageDto) {
-    const channel = await this.prismaService.projectChatChannel.findFirst({
-      where: {
-        id: data.channelId,
-      },
-      select: {
-        participants: {
-          select: {
-            id: true,
+    let channel = await this.cachingService.getChannelInfoFromCache(
+      data.channelId
+    );
+
+    if (!channel) {
+      channel = await this.prismaService.projectChatChannel.findFirst({
+        where: {
+          id: data.channelId,
+        },
+        select: {
+          participants: {
+            select: {
+              id: true,
+            },
           },
         },
-      },
-    });
+      });
+    }
 
     if (!channel) throw new BadRequestException("Could not find channel");
 
@@ -672,6 +715,8 @@ export class ProjectService {
         },
       },
     });
+
+    await this.cachingService.addMessageToChannel(data.channelId, newMessage);
 
     return {
       message: newMessage,
@@ -1485,5 +1530,177 @@ export class ProjectService {
     });
 
     return updatedChannel;
+  }
+
+  async createProjectSearchRequest(
+    data: CreateProjectSearchRequestDto,
+    developerId: string
+  ) {
+    const userProjectSearchRequests =
+      await this.prismaService.projectSearchRequest.findMany({
+        where: {
+          developerId: developerId,
+          resolved: false,
+        },
+        select: {
+          id: true,
+          developerId: true,
+          tags: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    if (userProjectSearchRequests.length > 2)
+      throw new BadRequestException(
+        "You already have 2 pending project search requests"
+      );
+
+    if (
+      userProjectSearchRequests.find((x) =>
+        x.tags.every((y) => data.tagIds.includes(y.id))
+      )
+    ) {
+      throw new BadRequestException(
+        "You already have a pending project search for those allTechnologies"
+      );
+    }
+
+    const res = await this.prismaService.projectSearchRequest.create({
+      data: {
+        developerId: developerId,
+        tags: {
+          connect: data.tagIds.map((x) => ({ id: x })),
+        },
+        allTagsRequired: data.allTechnologies,
+      },
+    });
+
+    return "A project search request has been created for you.";
+  }
+
+  @Cron("0 10 * * * *")
+  async answerProjectSearchRequests() {
+    const openSearchRequests =
+      await this.prismaService.projectSearchRequest.findMany({
+        where: {
+          resolved: false,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          id: true,
+          allTagsRequired: true,
+          developerId: true,
+          tags: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    const projects = await this.prismaService.project.findMany({
+      select: {
+        id: true,
+        ownerId: true,
+        developers: {
+          select: {
+            id: true,
+          },
+        },
+        tags: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    const mappings: {
+      requestId: string;
+      projectid: string;
+      developerId: string;
+    }[] = [];
+    const felxableRequests = openSearchRequests.filter(
+      (x) => x.allTagsRequired
+    );
+    const inflexableRequests = openSearchRequests.filter(
+      (x) => !x.allTagsRequired
+    );
+
+    felxableRequests.forEach((request) => {
+      const requestTags = request.tags.map((z) => z.id);
+      const matchingProject = projects.find((x) =>
+        x.tags.some((y) => requestTags.includes(y.id))
+      );
+
+      if (matchingProject) {
+        if (
+          matchingProject.ownerId == request.developerId ||
+          matchingProject.developers
+            .map((x) => x.id)
+            .includes(request.developerId)
+        ) {
+          return;
+        } else {
+          mappings.push({
+            requestId: request.id,
+            projectid: matchingProject.id,
+            developerId: request.developerId,
+          });
+        }
+      }
+    });
+
+    inflexableRequests.forEach((request) => {
+      const requestTags = request.tags.map((z) => z.id);
+      const matchingProject = projects.find((x) =>
+        x.tags.every((y) => requestTags.includes(y.id))
+      );
+
+      if (matchingProject) {
+        if (
+          matchingProject.ownerId == request.developerId ||
+          matchingProject.developers
+            .map((x) => x.id)
+            .includes(request.developerId)
+        ) {
+          return;
+        } else {
+          mappings.push({
+            requestId: request.id,
+            projectid: matchingProject.id,
+            developerId: request.developerId,
+          });
+        }
+      }
+    });
+
+    const res = await this.prismaService.$transaction([
+      ...mappings.map((x) =>
+        this.prismaService.projectSearchRequestAnswer.create({
+          data: {
+            requestId: x.requestId,
+            projectId: x.projectid,
+            developerId: x.developerId,
+          },
+        })
+      ),
+      ...mappings.map((x) =>
+        this.prismaService.projectSearchRequest.update({
+          where: {
+            id: x.requestId,
+          },
+          data: {
+            resolved: true,
+            resolvedAt: new Date(),
+          },
+        })
+      ),
+    ]);
   }
 }

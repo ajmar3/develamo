@@ -7,14 +7,21 @@ import { PrismaService } from "src/modules/database/prisma.service";
 import {
   CreateTicketDto,
   CreateTicketListDto,
+  DeleteTicketDto,
+  DeleteTicketListDto,
+  EditTicketDto,
   EditTicketListDto,
   ReorderTicketDto,
   ReorderTicketListDto,
 } from "./kanban.dto";
+import { CachingService } from "src/modules/caching/caching.service";
 
 @Injectable()
 export class KanbanService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private cachingService: CachingService
+  ) {}
 
   async getProjectTicketLists(projectId: string, developerId: string) {
     const projectInfo = await this.prismaService.project.findFirst({
@@ -66,6 +73,11 @@ export class KanbanService {
 
     if (!projectInfo)
       throw new BadRequestException("Could not find that project");
+
+    await this.cachingService.writeTicketListInfoToCache(
+      projectInfo.ticketLists,
+      projectId
+    );
 
     if (
       !projectInfo.developers.some((x) => x.id == developerId) &&
@@ -156,6 +168,11 @@ export class KanbanService {
         orderIndex: "asc",
       },
     });
+
+    await this.cachingService.updateTicketList(
+      newTicketListInfo,
+      data.projectId
+    );
 
     return newTicketListInfo;
   }
@@ -254,6 +271,8 @@ export class KanbanService {
         },
       },
     });
+
+    await this.cachingService.updateTicketList(updatedList, data.projectId);
 
     return updatedList;
   }
@@ -409,6 +428,8 @@ export class KanbanService {
       developerId
     );
 
+    // dont need to cache here as its handled already in the above function
+
     return newData;
   }
 
@@ -510,6 +531,8 @@ export class KanbanService {
       developerId
     );
 
+    // dont need to cache here as its handled already in the above function
+
     return newData;
   }
 
@@ -559,10 +582,329 @@ export class KanbanService {
       select: {
         id: true,
         title: true,
+        orderIndex: true,
         projectId: true,
+        tickets: {
+          select: {
+            id: true,
+            orderIndex: true,
+            ticketListId: true,
+            assignedDevelopers: {
+              select: {
+                id: true,
+                githubUsername: true,
+                name: true,
+                avatarURL: true,
+              },
+            },
+            title: true,
+            description: true,
+            createdAt: true,
+            editedAt: true,
+          },
+          orderBy: {
+            orderIndex: "asc",
+          },
+        },
       },
     });
 
+    await this.cachingService.updateTicketList(
+      updatedTicketList,
+      updatedTicketList.projectId
+    );
+
     return updatedTicketList;
+  }
+
+  async editTicket(data: EditTicketDto, developerId: string) {
+    const ticket = await this.prismaService.ticket.findFirst({
+      where: {
+        id: data.ticketId,
+      },
+      select: {
+        id: true,
+        project: {
+          select: {
+            developers: {
+              select: {
+                id: true,
+              },
+            },
+            ownerId: true,
+          },
+        },
+      },
+    });
+
+    if (!ticket) throw new BadRequestException("Could not find that ticket");
+
+    if (
+      !ticket.project.developers.map((x) => x.id).includes(developerId) &&
+      ticket.project.ownerId != developerId
+    )
+      throw new UnauthorizedException(
+        "You do not have permission to change that ticket"
+      );
+
+    const updatedTicket = await this.prismaService.ticket.update({
+      where: {
+        id: data.ticketId,
+      },
+      data: {
+        title: data.newTitle,
+        description: data.newDescription,
+      },
+      select: {
+        id: true,
+        orderIndex: true,
+        ticketListId: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        editedAt: true,
+        project: {
+          select: {
+            id: true,
+            developers: {
+              select: {
+                id: true,
+              },
+            },
+            ownerId: true,
+          },
+        },
+      },
+    });
+
+    await this.cachingService.updateTicket(
+      updatedTicket.ticketListId,
+      updatedTicket,
+      updatedTicket.project.id
+    );
+
+    return updatedTicket;
+  }
+
+  async deleteTicket(data: DeleteTicketDto, developerId: string) {
+    const ticketsFromList = await this.prismaService.ticket.findMany({
+      where: {
+        ticketListId: data.ticketListId,
+      },
+      select: {
+        id: true,
+        ticketListId: true,
+        orderIndex: true,
+        project: {
+          select: {
+            developers: {
+              select: {
+                id: true,
+              },
+            },
+            ownerId: true,
+          },
+        },
+      },
+    });
+
+    const ticketToBeDeleted = ticketsFromList.find(
+      (x) => x.id == data.ticketId
+    );
+
+    if (!ticketToBeDeleted)
+      throw new BadRequestException("Could not find that ticket");
+
+    if (
+      !ticketToBeDeleted.project.developers
+        .map((x) => x.id)
+        .includes(developerId) &&
+      ticketToBeDeleted.project.ownerId != developerId
+    )
+      throw new UnauthorizedException(
+        "You do not have permission to change that ticket"
+      );
+
+    const affectedTickets = ticketsFromList.filter(
+      (x) => x.orderIndex > ticketToBeDeleted.orderIndex
+    );
+
+    for (let i = 0; i < affectedTickets.length; i++) {
+      affectedTickets[i].orderIndex = affectedTickets[i].orderIndex - 1;
+    }
+
+    const [x, y] = await this.prismaService.$transaction([
+      ...affectedTickets.map((x) => {
+        return this.prismaService.ticket.update({
+          where: {
+            id: x.id,
+          },
+          data: {
+            orderIndex: x.orderIndex,
+          },
+        });
+      }),
+      this.prismaService.ticket.delete({
+        where: {
+          id: data.ticketId,
+        },
+      }),
+    ]);
+
+    const z = await this.prismaService.ticketList.findFirst({
+      where: {
+        id: data.ticketListId,
+      },
+      select: {
+        id: true,
+        orderIndex: true,
+        title: true,
+        projectId: true,
+        tickets: {
+          select: {
+            id: true,
+            orderIndex: true,
+            ticketListId: true,
+            assignedDevelopers: {
+              select: {
+                id: true,
+                githubUsername: true,
+                name: true,
+                avatarURL: true,
+              },
+            },
+            title: true,
+            description: true,
+            createdAt: true,
+            editedAt: true,
+          },
+          orderBy: {
+            orderIndex: "asc",
+          },
+        },
+      },
+    });
+
+    await this.cachingService.updateTicketList(z, z.projectId);
+
+    return z;
+  }
+
+  async deleteTicketList(data: DeleteTicketListDto, developerId: string) {
+    const ticketListsFromProject = await this.prismaService.ticketList.findMany(
+      {
+        where: {
+          projectId: data.projectId,
+        },
+        select: {
+          id: true,
+          orderIndex: true,
+          tickets: {
+            select: {
+              id: true,
+            },
+          },
+          project: {
+            select: {
+              developers: {
+                select: {
+                  id: true,
+                },
+              },
+              ownerId: true,
+            },
+          },
+        },
+      }
+    );
+
+    const listToBeDeleted = ticketListsFromProject.find(
+      (x) => x.id == data.ticketListId
+    );
+
+    if (!listToBeDeleted)
+      throw new BadRequestException("Could not find that ticket list");
+
+    if (listToBeDeleted.tickets.length != 0)
+      throw new BadRequestException(
+        "Cannot delete a ticket list that contains tickets"
+      );
+
+    if (
+      !listToBeDeleted.project.developers
+        .map((x) => x.id)
+        .includes(developerId) &&
+      listToBeDeleted.project.ownerId != developerId
+    )
+      throw new UnauthorizedException(
+        "You do not have permission to delete that ticket list"
+      );
+
+    const affectedTicketLists = ticketListsFromProject.filter(
+      (x) => x.orderIndex > listToBeDeleted.orderIndex
+    );
+
+    for (let i = 0; i < affectedTicketLists.length; i++) {
+      affectedTicketLists[i].orderIndex = affectedTicketLists[i].orderIndex - 1;
+    }
+
+    const [x, y] = await this.prismaService.$transaction([
+      ...affectedTicketLists.map((x) => {
+        return this.prismaService.ticketList.update({
+          where: {
+            id: x.id,
+          },
+          data: {
+            orderIndex: x.orderIndex,
+          },
+        });
+      }),
+      this.prismaService.ticketList.delete({
+        where: {
+          id: data.ticketListId,
+        },
+      }),
+    ]);
+
+    const z = await this.prismaService.ticketList.findMany({
+      where: {
+        projectId: data.projectId,
+      },
+      select: {
+        id: true,
+        orderIndex: true,
+        title: true,
+        projectId: true,
+        tickets: {
+          select: {
+            id: true,
+            orderIndex: true,
+            ticketListId: true,
+            assignedDevelopers: {
+              select: {
+                id: true,
+                githubUsername: true,
+                name: true,
+                avatarURL: true,
+              },
+            },
+            title: true,
+            description: true,
+            createdAt: true,
+            editedAt: true,
+          },
+          orderBy: {
+            orderIndex: "asc",
+          },
+        },
+      },
+      orderBy: {
+        orderIndex: "asc",
+      },
+    });
+
+    await this.cachingService.writeTicketListInfoToCache(z, data.projectId);
+
+    return z;
   }
 }

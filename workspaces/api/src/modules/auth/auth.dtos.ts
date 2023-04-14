@@ -12,3 +12,8 @@ export class AdminLoginDto {
   @IsString()
   password: string;
 }
+
+export class VerifyTokenDto {
+  @IsString()
+  token: string;
+}

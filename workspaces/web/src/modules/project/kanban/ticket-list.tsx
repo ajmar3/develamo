@@ -3,6 +3,7 @@ import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import {
   CheckIcon,
   PencilSquareIcon,
+  TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useProjectAuthStore } from "modules/auth/store/project-auth-store";
@@ -23,7 +24,10 @@ export const KanbanTicketList: React.FC<TicketListType> = (props) => {
   const createTicket = useKanbanSocketStore((state) => state.createTicket);
   const projectId = useProjectAuthStore((state) => state.projectInfo?.id);
 
-  const editTicket = useKanbanSocketStore(state => state.editTicketList);
+  const editTicketList = useKanbanSocketStore((state) => state.editTicketList);
+  const deleteTicketList = useKanbanSocketStore(
+    (state) => state.deleteTicketList
+  );
 
   const addTicket = () => {
     if (newTicketInput && projectId) {
@@ -41,9 +45,9 @@ export const KanbanTicketList: React.FC<TicketListType> = (props) => {
     setTicketListNameInputOpen(false);
     if (ticketListNameInput.length < 1) return;
     if (ticketListNameInput == props.title) return;
-    editTicket({
+    editTicketList({
       ticketListId: props.id,
-      newTitle: ticketListNameInput
+      newTitle: ticketListNameInput,
     });
   };
 
@@ -76,7 +80,11 @@ export const KanbanTicketList: React.FC<TicketListType> = (props) => {
         <div className="w-full flex justify-between items-center">
           {ticketListNameInputOpen ? (
             <>
-              <input className="input h-8 w-4/5" value={ticketListNameInput} onChange={e => setTicketListNameInput(e.target.value)}/>
+              <input
+                className="input h-8 w-4/5"
+                value={ticketListNameInput}
+                onChange={(e) => setTicketListNameInput(e.target.value)}
+              />
               <div className="flex items-center gap-1">
                 <button
                   className="btn btn-square btn-xs"
@@ -84,7 +92,11 @@ export const KanbanTicketList: React.FC<TicketListType> = (props) => {
                 >
                   <XMarkIcon />
                 </button>
-                <button className="btn btn-primary btn-square btn-xs disabled:btn-disabled" disabled={ticketListNameInput.length <= 0} onClick={() => submitEdit()}>
+                <button
+                  className="btn btn-primary btn-square btn-xs disabled:btn-disabled"
+                  disabled={ticketListNameInput.length <= 0}
+                  onClick={() => submitEdit()}
+                >
                   <CheckIcon />
                 </button>
               </div>
@@ -95,11 +107,24 @@ export const KanbanTicketList: React.FC<TicketListType> = (props) => {
                 {props.title}
               </div>
               <div className="flex items-center gap-4">
+                <TrashIcon
+                  className="w-6 h-6 cursor-pointer"
+                  onClick={() =>
+                    deleteTicketList({
+                      ticketListId: props.id,
+                      projectId: projectId as string,
+                    })
+                  }
+                />
                 <PencilSquareIcon
                   className="w-6 h-6 cursor-pointer"
                   onClick={() => setTicketListNameInputOpen(true)}
                 />
-                <div {...listeners} ref={setActivatorNodeRef} className="flex">
+                <div
+                  {...listeners}
+                  ref={setActivatorNodeRef}
+                  className="flex cursor-pointer"
+                >
                   <FontAwesomeIcon icon={faGrip} />
                 </div>
               </div>

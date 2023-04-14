@@ -24,4 +24,5 @@ export type TicketListType = {
 export type EditTicketListType = {
   id: string
   title: string
+  tickets: TicketType[]
 }

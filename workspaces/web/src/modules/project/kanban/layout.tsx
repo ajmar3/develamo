@@ -28,6 +28,7 @@ import { KanbanTicketList } from "./ticket-list";
 import { handleDragEndUtil, handleDragOverUtil } from "./utils";
 import { useProjectBaseStore } from "../stores/project-base.store";
 import { useRouter } from "next/router";
+import { TicketDetailsModal } from "./ticket-details.modal";
 
 export const ProjectKanbanLayout: React.FC = () => {
   const [newListInput, setNewListInput] = useState("");
@@ -182,6 +183,7 @@ export const ProjectKanbanLayout: React.FC = () => {
             <KanbanTicketList {...activeInfo} />
           </DragOverlay>
         )}
+      <TicketDetailsModal />
       </SortableContext>
     </DndContext>
   );

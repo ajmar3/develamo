@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 import create from "zustand";
-import { EditTicketListType, TicketListType } from "../types/kanban.types";
+import { EditTicketListType, TicketListType, TicketType } from "../types/kanban.types";
 import { useKanbanStore } from "./kanban-store";
 import { stringify } from "querystring";
 import { useFeedbackStore } from "modules/common/stores/feedback.store";
@@ -29,6 +29,9 @@ export interface IProjectSocketStore {
     oldOrderIndex: number;
   }) => void;
   editTicketList: (data: { ticketListId: string; newTitle: string }) => void;
+  editTicket: (data: { ticketId: string, newTitle: string, newDescription: string }) => void;
+  deleteTicket: (data: { ticketId: string, ticketListId: string }) => void;
+  deleteTicketList: (data: { ticketListId: string, projectId: string }) => void;
 }
 
 export const useKanbanSocketStore = create<IProjectSocketStore>((set) => {
@@ -56,6 +59,10 @@ export const useKanbanSocketStore = create<IProjectSocketStore>((set) => {
 
   socket.on("ticket-list-edit", (newListData: EditTicketListType) => {
     kanbanStore.editTicketList(newListData);
+  });
+
+  socket.on("ticket-edit", (newData: TicketType) => {
+    kanbanStore.editTicket(newData);
   });
 
   socket.on("error", (error) => {
@@ -97,6 +104,15 @@ export const useKanbanSocketStore = create<IProjectSocketStore>((set) => {
     },
     editTicketList: (data: { ticketListId: string; newTitle: string }) => {
       socket.emit("edit-ticket-list", data);
+    },
+    editTicket: (data: { ticketId: string, newTitle: string, newDescription: string }) => {
+      socket.emit("edit-ticket", data);
+    },
+    deleteTicket: (data: { ticketId: string, ticketListId: string }) => {
+      socket.emit("delete-ticket", data);
+    },
+    deleteTicketList: (data: { ticketListId: string, projectId: string }) => {
+      socket.emit("delete-ticket-list", data);
     },
   };
 });

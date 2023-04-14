@@ -18,6 +18,9 @@ import {
   ReorderTicketListDto,
   ReorderTicketDto,
   EditTicketListDto,
+  EditTicketDto,
+  DeleteTicketDto,
+  DeleteTicketListDto,
 } from "./kanban.dto";
 import { KanbanService } from "./kanban.service";
 import { CachingService } from "src/modules/caching/caching.service";
@@ -114,5 +117,38 @@ export class KanbanGateway {
     this.server
       .to("kanban-" + newListInfo.projectId)
       .emit("ticket-list-edit", newListInfo);
+  }
+
+  @SubscribeMessage("edit-ticket")
+  async editTicket(client: IValidatedSocket, data: EditTicketDto) {
+    const newTicketInfo = await this.kanbanService.editTicket(
+      data,
+      client.user.id
+    );
+    this.server
+      .to("kanban-" + newTicketInfo.project.id)
+      .emit("ticket-edit", newTicketInfo);
+  }
+
+  @SubscribeMessage("delete-ticket")
+  async deleteTicket(client: IValidatedSocket, data: DeleteTicketDto) {
+    const newListInfo = await this.kanbanService.deleteTicket(
+      data,
+      client.user.id
+    );
+    this.server
+      .to("kanban-" + newListInfo.projectId)
+      .emit("ticket-list-edit", newListInfo);
+  }
+
+  @SubscribeMessage("delete-ticket-list")
+  async deleteTicketList(client: IValidatedSocket, data: DeleteTicketListDto) {
+    const newListInfo = await this.kanbanService.deleteTicketList(
+      data,
+      client.user.id
+    );
+    this.server
+      .to("kanban-" + data.projectId)
+      .emit("ticket-list-info", newListInfo);
   }
 }

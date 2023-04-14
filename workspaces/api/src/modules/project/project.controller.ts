@@ -1,6 +1,10 @@
 import { Body, Controller, Get, Post, Req } from "@nestjs/common";
 import { IValidatedRequest } from "../auth/auth.interfaces";
-import { CreateProjectDto, ProjectFeedDto } from "./project.dtos";
+import {
+  CreateProjectDto,
+  CreateProjectSearchRequestDto,
+  ProjectFeedDto,
+} from "./project.dtos";
 import { ProjectService } from "./project.service";
 
 @Controller("project")
@@ -28,5 +32,16 @@ export class ProjectController {
     @Req() request: IValidatedRequest
   ) {
     return await this.projectService.createProject(model, request.user.id);
+  }
+
+  @Post("create-project-search")
+  async createProjectSearchRequest(
+    @Body() model: CreateProjectSearchRequestDto,
+    @Req() request: IValidatedRequest
+  ) {
+    return await this.projectService.createProjectSearchRequest(
+      model,
+      request.user.id
+    );
   }
 }

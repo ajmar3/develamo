@@ -3,6 +3,7 @@ import {
   IsArray,
   IsNumber,
   IsString,
+  Length,
   ValidateNested,
 } from "class-validator";
 
@@ -70,4 +71,32 @@ export class EditTicketListDto {
 
   @IsString()
   newTitle: string;
+}
+
+export class EditTicketDto {
+  @IsString()
+  ticketId: string;
+
+  @IsString()
+  @Length(5)
+  newTitle: string;
+
+  @IsString()
+  newDescription: string;
+}
+
+export class DeleteTicketDto {
+  @IsString()
+  ticketId: string;
+
+  @IsString()
+  ticketListId: string;
+}
+
+export class DeleteTicketListDto {
+  @IsString()
+  ticketListId: string;
+
+  @IsString()
+  projectId: string;
 }

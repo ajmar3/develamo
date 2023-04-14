@@ -2,6 +2,7 @@ import { DashSearchResults } from "../search-results";
 import { CreateProjectModal } from "../create-project-modal";
 import { DashFeed } from "./feed";
 import { useState } from "react";
+import { FindProjectModal } from "../find-project.modal";
 
 export const DashFindProjectLayout = () => {
   const [searchInput, setSearchInput] = useState("");
@@ -15,7 +16,7 @@ export const DashFindProjectLayout = () => {
           placeholder="Search developers, projects or tags"
           className="input w-full"
         />
-        <label htmlFor="create-project-modal" className="btn btn-secondary">
+        <label htmlFor="find-project-modal" className="btn btn-secondary">
           Find me a project
         </label>
         <label htmlFor="create-project-modal" className="btn btn-primary">
@@ -32,6 +33,7 @@ export const DashFindProjectLayout = () => {
         </div>
       )}
       <CreateProjectModal />
+      <FindProjectModal />
     </div>
   );
 };

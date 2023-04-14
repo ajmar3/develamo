@@ -4,6 +4,13 @@ import axios from "axios";
 export type MyConnectionsType = {
   ownedProjects: OwnedProjectType[]
   projects: ProjectType[]
+  projectSearchRequestAns: FindProjectRequestAnswerType[]
+}
+
+export type FindProjectRequestAnswerType = {
+  id: string,
+  createdAt: string;
+  project: ProjectType;
 }
 
 export type ProjectType = {

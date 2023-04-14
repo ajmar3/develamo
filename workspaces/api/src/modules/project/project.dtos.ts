@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsNumber,
   IsString,
   MinLength,
@@ -26,6 +27,14 @@ export class CreateProjectDto {
   @IsString()
   @ValidateIf((object, value) => value != null || value != undefined)
   repoURL: string;
+}
+
+export class CreateProjectSearchRequestDto {
+  @IsArray()
+  tagIds: string[];
+
+  @IsBoolean()
+  allTechnologies: boolean;
 }
 
 export class CreateChannelDto {

@@ -11,6 +11,9 @@ import { DeveloperModule } from "../developer/developer.module";
 import { ProjectModule } from "../project/project.module";
 import { SearchModule } from "../search/search.module";
 import { NotificationModule } from "../notification/notification.module";
+import type { RedisClientOptions } from "redis";
+import * as redisStore from "cache-manager-redis-store";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   imports: [
@@ -25,7 +28,11 @@ import { NotificationModule } from "../notification/notification.module";
     SearchModule,
     ChatModule,
     NotificationModule,
-    CacheModule.register({ isGlobal: true }),
+    CacheModule.register<RedisClientOptions>({
+      isGlobal: true,
+      url: "redis://localhost:6379",
+    }),
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
   providers: [

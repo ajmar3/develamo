@@ -45,6 +45,8 @@ model Developer {
   assignedTickets Ticket[]
   notifications Notification[] @relation(name: "developer_notifications")
   referencingNotifications Notification[] @relation(name: "referencingNotifications")
+  projectSearchRequest  ProjectSearchRequest[]
+  projectSearchRequestAns  ProjectSearchRequestAnswer[]
 }
 
 model Tag {
@@ -52,6 +54,7 @@ model Tag {
   title String
   createdAt DateTime  @default(now())
   projects  Project[]
+  projectSearchRequest  ProjectSearchRequest[]
 }
 
 model Connection {
@@ -102,6 +105,7 @@ model Project {
   ticketLists TicketList[]
   tickets Ticket[]
   notifications Notification[]
+  projectSearchRequestAnswers ProjectSearchRequestAnswer[]
 }
 
 model ProjectLike {
@@ -214,4 +218,27 @@ model Notification {
   seen  Boolean @default(false)
   createdAt DateTime  @default(now())
   seenAt DateTime?
+}
+
+model ProjectSearchRequest {
+  id  String  @id @default(uuid())
+  developerId String
+  developer Developer @relation(fields: [developerId], references: [id])
+  tags  Tag[]
+  allTagsRequired Boolean
+  resolved  Boolean @default(false)
+  createdAt DateTime  @default(now())
+  resolvedAt  DateTime?
+  answer  ProjectSearchRequestAnswer?
+}
+
+model ProjectSearchRequestAnswer {
+  id  String  @id @default(uuid())
+  developerId String
+  developer Developer @relation(fields: [developerId], references: [id])
+  request ProjectSearchRequest  @relation(fields: [requestId], references: [id])
+  requestId String  @unique()
+  projectId String
+  project Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime  @default(now())
 }

@@ -14,7 +14,11 @@ import { Response } from "express";
 import { Public } from "./auth.decorators";
 import { IValidatedRequest } from "./auth.interfaces";
 import { AuthRolesEnum } from "./auth.enums";
-import { AdminLoginDto, AdminTokenGenerateDto } from "./auth.dtos";
+import {
+  AdminLoginDto,
+  AdminTokenGenerateDto,
+  VerifyTokenDto,
+} from "./auth.dtos";
 import { request } from "http";
 
 @Controller("auth")
@@ -63,5 +67,11 @@ export class AuthController {
   @Post("admin-login")
   async adminLogin(@Body() model: AdminLoginDto) {
     return await this.authService.adminLogin(model);
+  }
+
+  @Public()
+  @Post("verify-token")
+  async verifyToken(@Body() model: VerifyTokenDto) {
+    return await this.authService.verifyToken(model);
   }
 }

@@ -12,7 +12,7 @@ export const FeedbackMessages = () => {
         if (message.statusCode >= 200 && message.statusCode < 300)
           return (
             <div
-              className="w-full rounded-md bg-success text-sucess-content"
+              className="w-full rounded-md bg-success text-black"
               key={message.id}
             >
               <div className="w-full px-4 py-2 text-lg font-semibold border-b border-success-content flex justify-between items-center">
