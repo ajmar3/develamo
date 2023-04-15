@@ -1,11 +1,4 @@
-import {
-  ArrayMinSize,
-  IsArray,
-  IsNumber,
-  IsString,
-  Length,
-  ValidateNested,
-} from "class-validator";
+import { IsNumber, IsString, Length } from "class-validator";
 
 export class CreateTicketListDto {
   @IsString()
