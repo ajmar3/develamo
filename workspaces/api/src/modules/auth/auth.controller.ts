@@ -36,6 +36,7 @@ export class AuthController {
       httpOnly: true,
       path: "/",
     });
+    response.set("Access-Control-Expose-Headers", "Set-Cookie");
     response.send({ login: "successful" });
   }
 
