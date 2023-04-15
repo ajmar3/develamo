@@ -7,7 +7,7 @@
   "private": true,
   "workspaces": ["workspaces/*"],
   "scripts": {
-    "build-api": "cd workspaces/api && nest build",
+    "build-api": "cd workspaces/api && npm install && npx prisma generate && nest build",
     "start-api": "cd workspaces/api && node dist/main"
   }
 }
