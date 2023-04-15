@@ -12,6 +12,16 @@ export async function seedTags(prisma: PrismaClient) {
       { title: "Flask" },
       { title: "Express.Js" },
       { title: "Nest.Js" },
+      { title: "Angular.Js" },
+      { title: "FastAPI" },
+      { title: "MySQL" },
+      { title: "PostgreSQL" },
+      { title: "MongoDB" },
+      { title: "Redis" },
+      { title: ".NET Core" },
+      { title: "C#" },
+      { title: "Java" },
+      { title: "Spring" },
     ],
   });
 

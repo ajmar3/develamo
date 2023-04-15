@@ -8,7 +8,7 @@ import { seedTags } from "./seed.tags";
 
 const prisma = new PrismaClient();
 
-async function seed() {
+async function seedDev() {
   if (!(await isInSeedHistory(prisma, SEEDHISTORYREGISTER.SEED_DEVELOPERS)))
     await seedDevelopers(prisma);
   if (!(await isInSeedHistory(prisma, SEEDHISTORYREGISTER.SEED_ADMIN)))
@@ -21,7 +21,7 @@ async function seed() {
     await seedConnectionLists(prisma);
 }
 
-seed()
+seedDev()
   .then(async () => {
     await prisma.$disconnect();
   })
