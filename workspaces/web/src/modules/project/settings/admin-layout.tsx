@@ -194,7 +194,6 @@ export const ProjectSettingsAdminLayout: React.FC = () => {
                 </button>
 
                 <div className="flex gap-5">
-                  <button className="btn btn-sm btn-secondary">Chat</button>
                   <button
                     className="btn btn-sm btn-primary"
                     onClick={() => acceptApplication(app.id)}
