@@ -30,7 +30,7 @@ import { ScheduleModule } from "@nestjs/schedule";
     NotificationModule,
     CacheModule.register<RedisClientOptions>({
       isGlobal: true,
-      url: "redis://localhost:6379",
+      url: process.env.REDIS_URL,
     }),
     ScheduleModule.forRoot(),
   ],

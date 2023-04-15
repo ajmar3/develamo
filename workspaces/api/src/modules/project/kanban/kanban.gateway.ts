@@ -27,7 +27,7 @@ import { CachingService } from "src/modules/caching/caching.service";
 
 @WebSocketGateway({
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   },
   namespace: "kanban",

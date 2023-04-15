@@ -19,7 +19,6 @@ import {
   AdminTokenGenerateDto,
   VerifyTokenDto,
 } from "./auth.dtos";
-import { request } from "http";
 
 @Controller("auth")
 export class AuthController {
