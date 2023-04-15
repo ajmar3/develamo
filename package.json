@@ -9,6 +9,7 @@
   "scripts": {
     "build-api": "cd workspaces/api && npm install && npx prisma generate && nest build",
     "start-api-dev": "cd workspaces/api && npx prisma migrate deploy && ts-node prisma/seeder/seed-dev.ts && node dist/src/main",
-    "start-api-prod": "cd workspaces/api && npx prisma migrate deploy && ts-node prisma/seeder/seed-prod.ts && node dist/src/main"
+    "start-api-prod": "cd workspaces/api && npx prisma migrate deploy && ts-node prisma/seeder/seed-prod.ts && node dist/src/main",
+    "test": "cd workspaces/api && npm run test"
   }
 }
