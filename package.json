@@ -5,5 +5,9 @@
   "author": "",
   "license": "ISC",
   "private": true,
-  "workspaces": ["workspaces/*"]
+  "workspaces": ["workspaces/*"],
+  "scripts": {
+    "build-api": "cd workspace/api && nest build",
+    "run-api": "cd workspace/api && node dist/main"
+  }
 }
