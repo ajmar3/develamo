@@ -8,6 +8,6 @@
   "workspaces": ["workspaces/*"],
   "scripts": {
     "build-api": "cd workspaces/api && npm install && npx prisma generate && nest build",
-    "start-api": "cd workspaces/api && node dist/src/main"
+    "start-api": "cd workspaces/api && npx prisma migrate deploy && node dist/src/main"
   }
 }
