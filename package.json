@@ -8,6 +8,6 @@
   "workspaces": ["workspaces/*"],
   "scripts": {
     "build-api": "cd workspace/api && nest build",
-    "run-api": "cd workspace/api && node dist/main"
+    "start-api": "cd workspace/api && node dist/main"
   }
 }
