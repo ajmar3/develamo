@@ -1,35 +1,28 @@
 import express from "express";
-import { createServer, request } from "http";
+import { createServer } from "http";
 import { Server } from "socket.io";
-import cookie from "cookie";
-import axios from "axios";
+import mediasoup from "mediasoup";
+import path from "path";
+import dotenv from "dotenv";
 
-import { createWorker } from "./createWorker.js";
-import { getVoiceChatParticipants } from "./redis.js"
-import { createWebRtcTransport } from "./createTransport.js";
+dotenv.config();
 
 const app = express();
 
 const httpServer = createServer(app);
 
 httpServer.listen(4000, () => {
-  console.log("listening on port 4000");
+  console.log("Server listening on port 4000");
 });
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
-    credentials: true,
-    methods: ["GET", "POST"],
-    allowedHeaders: "*",
-  },
+    origin: '*',
+  }
 });
 
-const worker = await createWorker();
-const routers = {}
+const worker = await mediasoup.createWorker()
 
-// define the tyeps of media our SFU will take.
-// we are only defining audio but this could be expanded to video also in the future
 const mediaCodecs = [
   {
     kind: "audio",
@@ -37,98 +30,367 @@ const mediaCodecs = [
     clockRate: 48000,
     channels: 2,
   },
+  {
+    kind: "video",
+    mimeType: "video/VP8",
+    clockRate: 90000,
+    parameters: {
+      "x-google-start-bitrate": 1000,
+    },
+  },
 ];
 
-let producertransport
-let consumertransport
-let producer
-let consumer
+const rooms = [];
+const peers = [];
 
 io.on("connection", async (socket) => {
-  if (socket.request.headers.cookie) {
-    const cookies = cookie.parse(socket.request.headers.cookie);
-    if (!cookies["Authorization"]) {
-      socket.emit("error", "No authorisation");
+  console.log("Client connected");
+
+  socket.on("connected", async (data) => {
+    console.log("connected");
+    console.log(rooms)
+    const room = rooms.find((room) => room.id === data.channelId);
+    if (!room) {
+      socket.emit("init-room-participants", []);
       return;
     }
-    try {
-      const userDataReq = await axios.post(
-        "http://localhost:8000/auth/verify-token",
-        { token: cookies["Authorization"] }
-      );
-      const userData = userDataReq.data;
-      // actual section where we are defining socket behaviour and responses
-      if (userData) {
+    const roomParticipants = room.peers.map(x => x.info);
+    socket.emit("init-room-participants", roomParticipants);
+    socket.join(data.channelId);
+  });
 
-        socket.on("connected", async (chatId) => {
-          const info = await getVoiceChatParticipants(chatId)
-          socket.emit("unopened-voice-chat-info", info)
-          console.log("user connected")
-        });
-
-        socket.on("get-rtp-capabilities", async (chatId) => {
-          let router
-          if (routers[chatId]) {
-            router = routers[chatId]
-          }
-          else {
-            router = await worker.createRouter({ mediaCodecs: mediaCodecs })
-            routers[chatId] = router
-          }
-          console.log("user here", router.rtpCapabilities)
-          socket.emit("rtp-capabilities", router.rtpCapabilities)
-        });
-
-        socket.on("create-webrtc-transport", async ({chatId}, callback) => {
-          let router
-          if (routers[chatId]) {
-            router = routers[chatId]
-          }
-          else {
-            router = await worker.createRouter({ mediaCodecs: mediaCodecs })
-            routers[chatId] = router
-          }
-          producertransport = await createWebRtcTransport(router)
-          consumertransport = await createWebRtcTransport(router)
-          callback({
-            params: {
-              id: producertransport.id,
-              iceParameters: producertransport.iceParameters,
-              iceCandidates: producertransport.iceCandidates,
-              dtlsParameters: producertransport.dtlsParameters,
-            }
-          })
-
-          socket.on("transport-connect", async ({ dtlsParameters }) => {
-            await producertransport.connect({ dtlsParameters })
-          })
-
-          socket.on('transport-produce', async ({ kind, rtpParameters, appData }, callback) => {
-            console.log("here")
-            producer = await producertransport.produce({
-              kind,
-              rtpParameters
-            })
-
-            producer.on('transportclose', () => {
-              console.log('transport for this producer closed ')
-              producer.close()
-            })
-        
-            // Send back to the client the Producer's id
-            callback({
-              id: producer.id
-            })
-          })
-        })
-
-      } else {
-        socket.emit("error", "No authorisation");
-      }
-    } catch {
-      socket.emit("error", "No authorisation");
+  socket.on("join-room", async (data, callback) => {
+    let roomIndex = rooms.findIndex((room) => room.id === data.channelId);
+    if (roomIndex === -1) {
+      const room = {
+        id: data.channelId,
+        router: await worker.createRouter({ mediaCodecs: mediaCodecs }),
+        peers: [],
+      };
+      rooms.push(room);
+      roomIndex = rooms.findIndex((room) => room.id === data.channelId);
     }
-  } else {
-    socket.emit("error", "No authorisation");
-  }
+    let peerIndex = rooms[roomIndex].peers.findIndex((peer) => peer.id === socket.id);
+    if (peerIndex == -1) {
+      const peer = {
+        id: data.developerId,
+        roomId: data.channelId,
+        socketId: socket.id,
+        transports: [],
+        producer: null,
+        producerTransport: null,
+        consumers: [],
+        info: {
+          id: data.developerId,
+          name: data.developerName,
+          avatar: data.developerAvatar,
+          githubName: data.developerGithubName,
+        }
+      };
+      rooms[roomIndex].peers.push(peer);
+      callback({ rtpCapabilities: rooms[roomIndex].router.rtpCapabilities });
+    }
+    socket.join(data.channelId);
+  });
+
+  socket.on("createWebRtcTransport", async (data, callback) => {
+    const roomIndex = rooms.findIndex((room) => room.id === data.channelId);
+    if (roomIndex === -1) {
+      socket.emit("error", "Room not found");
+      return;
+    }
+    const peerIndex = rooms[roomIndex].peers.findIndex(
+      (peer) => peer.id === data.developerId
+    );
+    if (peerIndex === -1) {
+      socket.emit("error", "Room not found");
+      return;
+    }
+    const transport = await createWebRtcTransport(rooms[roomIndex].router, socket);
+    if (data.sender) {
+      callback({
+        id: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters,
+      });
+      rooms[roomIndex].peers[peerIndex].producerTransport = transport;
+    } else {
+      callback({
+        id: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters,
+      });
+      rooms[roomIndex].peers[peerIndex].transports.push(transport);
+    }
+  });
+
+  socket.on("transportConnect", async (data) => {
+    const roomIndex = rooms.findIndex((room) => room.id === data.channelId);
+    if (roomIndex === -1) {
+      socket.emit("error", "Room not found");
+      return;
+    }
+    const peerIndex = rooms[roomIndex].peers.findIndex(
+      (peer) => peer.id === data.developerId
+    );
+    if (peerIndex === -1) {
+      socket.emit("error", "Room not found");
+      return;
+    }
+    if (data.sender) {
+      await rooms[roomIndex].peers[peerIndex].producerTransport.connect({
+        dtlsParameters: data.dtlsParameters,
+      });
+    } else {
+      console.log(data)
+      const consumerTransport = rooms[roomIndex].peers[
+        peerIndex
+      ].transports.find((transport) => transport.id === data.id);
+      await consumerTransport.connect({ dtlsParameters: data.dtlsParameters });
+    }
+  });
+
+  socket.on("produce", async (data, callback) => {
+    const { kind, rtpParameters, channelId } = data;
+
+    const roomIndex = rooms.findIndex((room) => room.id === channelId);
+    if (roomIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    const peerIndex = rooms[roomIndex].peers.findIndex(
+      (peer) => peer.id === data.developerId
+    );
+    if (peerIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+
+    const producerTransport =
+      rooms[roomIndex].peers[peerIndex].producerTransport;
+    if (!producerTransport) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+
+    const producer = await producerTransport.produce({
+      kind,
+      rtpParameters,
+    });
+    rooms[roomIndex].peers[peerIndex].producer = producer;
+
+    io.to(channelId).emit("new-producer", {
+      producerId: producer.id,
+      peerId: data.developerId,
+      info: rooms[roomIndex].peers.map(x => x.info),
+    });
+
+    producer.on("transportclose", () => {
+      console.log("producer transportclose");
+      producer.close();
+    });
+
+    callback({ id: producer.id });
+  });
+
+  socket.on("consume", async (data, callback) => {
+    console.log("consume");
+    const roomIndex = rooms.findIndex((room) => room.id === data.channelId);
+    if (roomIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    const peerIndex = rooms[roomIndex].peers.findIndex(
+      (peer) => peer.id === data.developerId
+    );
+    if (peerIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+
+    const producerPeerIndex = rooms[roomIndex].peers.findIndex(
+      (x) => x.id == data.producerPeerId
+    );
+    const router = rooms[roomIndex].router;
+    const consumerTransport = rooms[roomIndex].peers[peerIndex].transports.find(
+      (x) => x.id === data.consumerTransportId
+    );
+    const producer = rooms[roomIndex].peers[producerPeerIndex].producer;
+    if (
+      !producer ||
+      !consumerTransport ||
+      !router.canConsume({
+        producerId: producer.id,
+        rtpCapabilities: data.rtpCapabilities,
+      })
+    ) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    const consumer = await consumerTransport.consume({
+      producerId: producer.id,
+      rtpCapabilities: data.rtpCapabilities,
+      paused: true,
+    });
+
+    consumer.on("transportclose", () => {
+      console.log("transport close from consumer");
+    });
+
+    consumer.on("producerclose", () => {
+      console.log("producer of consumer closed");
+    });
+
+    rooms[roomIndex].peers[peerIndex].consumers.push(consumer);
+    callback({
+      id: consumer.id,
+      producerId: producer.id,
+      kind: consumer.kind,
+      rtpParameters: consumer.rtpParameters,
+    });
+  });
+
+  socket.on("resume", async (data) => {
+    console.log("resume");
+    const roomIndex = rooms.findIndex((room) => room.id === data.channelId);
+    if (roomIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    const peerIndex = rooms[roomIndex].peers.findIndex(
+      (peer) => peer.id === data.developerId
+    );
+    if (peerIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+
+    const consumer = rooms[roomIndex].peers[peerIndex].consumers.find(
+      (x) => x.id === data.consumerId
+    );
+    if (!consumer) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    await consumer.resume();
+  });
+
+  socket.on("getProducers", async (data, callback) => {
+    const roomIndex = rooms.findIndex((room) => room.id === data.channelId);
+    if (roomIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    const peers = rooms[roomIndex].peers.filter((peer) => peer.id != data.developerId);
+    if (!peers) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    const producerInfo = peers.map((peer) => ({
+      peerId: peer.id,
+      producerId: peer.producer.id,
+    }));
+    callback(producerInfo);
+  });
+
+  socket.on("leave-room", (data) => {
+    console.log("leave-room")
+    const roomIndex = rooms.findIndex((room) => room.id === data.channelId);
+    if (roomIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+    const peerIndex = rooms[roomIndex].peers.findIndex(
+      (peer) => peer.id === data.developerId
+    );
+    if (peerIndex === -1) {
+      socket.emit("error", "Something went wrong! Please refresh and try again.");
+      return;
+    }
+
+    rooms[roomIndex].peers[peerIndex].producer?.close();
+    rooms[roomIndex].peers[peerIndex].producerTransport?.close();
+    rooms[roomIndex].peers[peerIndex].transports.forEach((transport) =>
+      transport.close()
+    );
+    rooms[roomIndex].peers[peerIndex].consumers.forEach((consumer) =>
+      consumer.close()
+    );
+    rooms[roomIndex].peers.splice(peerIndex, 1);
+
+    io.to(rooms[roomIndex].id).emit("producer-leave", {
+      info: rooms[roomIndex].peers.map(x => x.info),
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("peer disconnected");
+    const roomIndex = rooms.findIndex(x => x.peers.map(x => x.socketId).includes(socket.id));
+    if (roomIndex === -1) {
+      return;
+    }
+
+    const peersToBeRemoved = rooms[roomIndex].peers.filter(x => x.socketId === socket.id);
+    if (peersToBeRemoved.length === 0) {
+      return;
+    }
+
+    peersToBeRemoved.forEach(peer => {
+      const peerIndex = rooms[roomIndex].peers.findIndex(x => x.id === peer.id);
+      if (peerIndex === -1) {
+        return;
+      } else {
+        rooms[roomIndex].peers[peerIndex].producer?.close();
+        rooms[roomIndex].peers[peerIndex].producerTransport?.close();
+        rooms[roomIndex].peers[peerIndex].transports.forEach((transport) =>
+          transport.close()
+        );
+        rooms[roomIndex].peers[peerIndex].consumers.forEach((consumer) =>
+          consumer.close()
+        );
+        rooms[roomIndex].peers.splice(peerIndex, 1);
+      }
+    });
+      
+    socket.broadcast.to(rooms[roomIndex].id).emit("producer-leave", {
+      info: rooms[roomIndex].peers.map(x => x.info),
+    });
+
+  });
 });
+
+const createWebRtcTransport = async (router, socket) => {
+  try {
+    const webRtcTransport_options = {
+      listenIps: [
+        {
+          ip: "0.0.0.0",
+          announcedIp: process.env.ANNOUNCEDIP,
+        },
+      ],
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true,
+    };
+
+    let transport = await router.createWebRtcTransport(webRtcTransport_options);
+    console.log(`transport created: ${transport.id}`);
+
+    transport.on("dtlsstatechange", (dtlsState) => {
+      if (dtlsState === "closed") {
+        transport.close();
+      }
+    });
+
+    transport.on("close", () => {
+      console.log("transport closed");
+    });
+
+    return transport;
+  } catch (error) {
+    socket.emit("error", "Something went wrong! Please refresh and try again.");
+    return;
+  }
+};
