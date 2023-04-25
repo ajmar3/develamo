@@ -26,18 +26,10 @@ export class AuthController {
 
   @Public()
   @Post("oauth")
-  async oauthLogin(
-    @Body("code") code: string,
-    @Res({ passthrough: true }) response: Response
-  ) {
+  async oauthLogin(@Body("code") code: string) {
     const tokenData = await this.authService.getGithubData(code);
     const token = await this.authService.signIn(tokenData);
-    response.cookie("Authorization", token, {
-      httpOnly: true,
-      path: "/",
-    });
-    response.set("Access-Control-Expose-Headers", "Set-Cookie");
-    response.send({ login: "successful" });
+    return token;
   }
 
   @Get("me")
