@@ -26,13 +26,10 @@ export class AuthController {
 
   @Public()
   @Post("oauth")
-  async oauthLogin(
-    @Body("code") code: string,
-    @Res({ passthrough: true }) response: Response
-  ) {
+  async oauthLogin(@Body("code") code: string) {
     const tokenData = await this.authService.getGithubData(code);
     const token = await this.authService.signIn(tokenData);
-    response.send({ token: token });
+    return token;
   }
 
   @Get("me")

@@ -12,7 +12,7 @@ export default function DesktopHomeLayout() {
 
   const mutation = useSignInMutation();
 
-  const [cookies, setCookie] = useCookies();
+  const [cookies, setCookie, removeCookie] = useCookies();
 
   useEffect(() => {
     if (router.query.code && !mutation.isSuccess) {
@@ -25,11 +25,18 @@ export default function DesktopHomeLayout() {
 
   useEffect(() => {
     if (mutation.isSuccess && !cookies.Authorization) {
-      setCookie("Authorization", mutation.data?.token, {
+      setCookie("Authorization", mutation.data, {
         path: "/",
         sameSite: "none"
       });
     }
+    if (mutation.isError) {
+      removeCookie("Authorization", {
+        path: "/",
+        sameSite: "none"
+      });
+    }
+    
   }, [mutation, mutation.data, router]);
 
   useEffect(() => {
