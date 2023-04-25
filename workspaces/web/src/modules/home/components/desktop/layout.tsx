@@ -3,16 +3,15 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import Image from "next/image";
 import Link from "next/link";
 import { useSignInMutation } from "modules/home/hooks/useSignInMutation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useCookies } from "react-cookie";
 
 export default function DesktopHomeLayout() {
   const router = useRouter();
 
   const mutation = useSignInMutation();
 
-  const [cookies, setCookie, removeCookie] = useCookies();
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
     if (router.query.code && !mutation.isSuccess) {
@@ -24,28 +23,26 @@ export default function DesktopHomeLayout() {
   }, [, router.query]);
 
   useEffect(() => {
-    if (mutation.isSuccess && !cookies.Authorization) {
-      setCookie("Authorization", mutation.data, {
-        path: "/",
-        sameSite: "none"
-      });
+    const token = document.cookie.split(";").find((c) => c.includes("Authorization"))?.split("=")[1];
+    if (mutation.isSuccess && !token) {
+      document.cookie = `Authorization=${mutation.data}; path=/; SameSite=None; Secure`;
+      setCount(count + 1);
     }
     if (mutation.isError) {
-      removeCookie("Authorization", {
-        path: "/",
-        sameSite: "none"
-      });
+      document.cookie = "";
     }
     
-  }, [mutation, mutation.data, router]);
+  }, [mutation.data]);
+
 
   useEffect(() => {
-    const token = cookies.Authorization;
+    const token = document.cookie.split(";").find((c) => c.includes("Authorization"))?.split("=")[1];
     if (token) {
       router.push("/dash/find");
     }
-  }, [, cookies, router]);
+  }, [count]);
 
+  
   return (
     <div className="w-screen h-screen">
       <div className="spacer layer flex justify-center items-center">
