@@ -27,6 +27,7 @@ export default function DesktopHomeLayout() {
     if (mutation.isSuccess && !cookies.Authorization) {
       setCookie("Authorization", mutation.data?.token, {
         path: "/",
+        sameSite: "none"
       });
     }
   }, [mutation, mutation.data, router]);
