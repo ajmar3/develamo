@@ -32,12 +32,7 @@ export class AuthController {
   ) {
     const tokenData = await this.authService.getGithubData(code);
     const token = await this.authService.signIn(tokenData);
-    response.cookie("Authorization", token, {
-      httpOnly: true,
-      path: "/",
-    });
-    response.set("Access-Control-Expose-Headers", "Set-Cookie");
-    response.send({ login: "successful" });
+    response.send({ token: token });
   }
 
   @Get("me")

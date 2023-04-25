@@ -5,14 +5,17 @@ import Link from "next/link";
 import { useSignInMutation } from "modules/home/hooks/useSignInMutation";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import { useCookies } from "react-cookie";
 
 export default function DesktopHomeLayout() {
   const router = useRouter();
 
   const mutation = useSignInMutation();
 
+  const [cookies, setCookie] = useCookies();
+
   useEffect(() => {
-    if (router.query.code) {
+    if (router.query.code && !mutation.isSuccess) {
       mutation.mutate({
         code: router.query.code as string,
       });
@@ -21,8 +24,19 @@ export default function DesktopHomeLayout() {
   }, [, router.query]);
 
   useEffect(() => {
-    if (mutation.isSuccess) router.push("/dash/find");
+    if (mutation.isSuccess && !cookies.Authorization) {
+      setCookie("Authorization", mutation.data?.token, {
+        path: "/",
+      });
+    }
   }, [mutation, mutation.data, router]);
+
+  useEffect(() => {
+    const token = cookies.Authorization;
+    if (token) {
+      router.push("/dash/find");
+    }
+  }, [, cookies, router]);
 
   return (
     <div className="w-screen h-screen">
