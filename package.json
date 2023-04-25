@@ -5,7 +5,7 @@
   "author": "",
   "license": "ISC",
   "private": true,
-  "workspaces": ["workspaces/*"],
+  "workspaces": ["workspaces/api", "workspaces/web"],
   "scripts": {
     "build-api": "cd workspaces/api && npm install && npx prisma generate && nest build",
     "start-api-dev": "cd workspaces/api && npx prisma migrate deploy && ts-node prisma/seeder/seed-dev.ts && node dist/src/main",
