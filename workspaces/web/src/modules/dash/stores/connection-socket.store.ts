@@ -1,10 +1,12 @@
 import { useDevAuthStore } from "modules/auth/store/auth-store";
 import { useFeedbackStore } from "modules/common/stores/feedback.store";
+import { ChatListDMType } from "modules/common/types/chat.types";
 import { ProjectApplicationType } from "modules/dash/hooks/useGetMyProjectsQuery";
 import { useConnectionStore } from "modules/dash/stores/connections.store";
 import { useProjectStrore } from "modules/dash/stores/project.store";
 import { io, Socket } from "socket.io-client";
 import create from "zustand";
+import { useChatMessageStore } from "./chat-message.store";
 
 export interface IConnectionSocketStore {
   socket: Socket;
@@ -18,6 +20,8 @@ export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => 
   const connectStore = useConnectionStore.getState();
   const projectStore = useProjectStrore.getState();
   const feedbackStore = useFeedbackStore.getState();
+  const chatStore = useChatMessageStore.getState();
+
 
   const socket = io(process.env.NEXT_PUBLIC_CONNECTION_WEBSOCKET_URL as string, {
     withCredentials: true,
@@ -44,6 +48,10 @@ export const useConnectionSocketStore = create<IConnectionSocketStore>((set) => 
 
   socket.on("error", (error) => {
     feedbackStore.addMessage(error);
+  });
+
+  socket.on("new-chat", (data: ChatListDMType) => {
+    chatStore.addDirectMessageChat(data);
   });
 
   return {

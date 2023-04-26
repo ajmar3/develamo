@@ -141,38 +141,19 @@ const PeopleActionButton: React.FC<{
     (state) => state.rejectConRequest
   );
   const chats = useChatMessageStore((state) => state.chats);
-  const createDirectMessageChat = useChatSocketStore(
-    (state) => state.createDirectMessageChat
-  );
   const setDashNavTab = useDashNavStore((state) => state.setActiveTab);
-  const openChat = useChatSocketStore(state => state.openChat);
 
   useEffect(() => {
     const chat = chats.directMessageChats.find((x) =>
       x.participants.map((x) => x.id).includes(props.developerId)
     );
-    if (chat) {
-      openChat(chat.id);
-    }
   }, [chats]);
-
-  const openSelectedChat = () => {
-    const chat = chats.directMessageChats.find((x) =>
-      x.participants.map((x) => x.id).includes(props.developerId)
-    );
-
-    if (!chat) {
-      createDirectMessageChat([props.developerId, developerId]);
-    } else {
-      openChat(chat.id);
-    }
-  };
 
   if (connections.find((x) => x.developerId == props.developerId))
     return (
-      <button className="btn btn-xs btn-primary" onClick={() => openSelectedChat()}>
-        Chat
-      </button>
+      <div className="btn btn-xs btn-primary cursor-default">
+        Connected
+      </div>
     );
   else if (requests.find((x) => x.requesterId == props.developerId)) {
     const request = requests.find((x) => x.requesterId == props.developerId);

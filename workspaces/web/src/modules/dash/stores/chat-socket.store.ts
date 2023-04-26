@@ -36,9 +36,7 @@ export const useChatSocketStore = create<IChatSocketStore>((set) => {
     }
   );
 
-  socket.on("new-chat", (data: ChatListDMType) => {
-    chatStore.addDirectMessageChat(data);
-  });
+
 
   socket.on("chat-opened", (data: ChatInfoType) => {
     chatStore.setOpenChatInfo(data);

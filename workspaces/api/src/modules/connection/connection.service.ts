@@ -191,6 +191,36 @@ export class ConnectionService {
           ],
         },
       },
+      select: {
+        id: true,
+        participants: {
+          select: {
+            avatarURL: true,
+            name: true,
+            id: true,
+            githubUsername: true,
+          },
+        },
+        messages: {
+          orderBy: {
+            sentAt: "desc",
+          },
+          select: {
+            seen: true,
+            text: true,
+            sentAt: true,
+            sender: {
+              select: {
+                avatarURL: true,
+                name: true,
+                id: true,
+                githubUsername: true,
+              },
+            },
+          },
+          take: 1,
+        },
+      },
     });
 
     await this.prismaServie.connection.createMany({
@@ -235,6 +265,7 @@ export class ConnectionService {
     return {
       requests: newConData.connectionRequests,
       connections: newConData.connectionList.connections,
+      chat: chat,
     };
   }
 

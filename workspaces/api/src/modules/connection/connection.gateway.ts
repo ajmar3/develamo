@@ -54,16 +54,7 @@ export class ConnectionGateway implements OnGatewayDisconnect {
 
     client.emit("new-sent-request", res.request);
 
-    const recieverClientConnectionId = await this.cacheService.checkUserOnline(
-      data.requestedId,
-      "connection"
-    );
-
-    if (recieverClientConnectionId) {
-      this.server
-        .to(recieverClientConnectionId)
-        .emit("new-connection-request", res);
-    }
+    this.server.to(res.request.requestedId).emit("new-connection-request", res);
   }
 
   @SubscribeMessage("accept-request")
@@ -79,6 +70,9 @@ export class ConnectionGateway implements OnGatewayDisconnect {
       requests: res.requests,
       connections: res.connections,
     });
+    for (const particpant of res.chat.participants) {
+      this.server.to(particpant.id).emit("new-chat", res.chat);
+    }
   }
 
   @SubscribeMessage("reject-request")
@@ -108,6 +102,7 @@ export class ConnectionGateway implements OnGatewayDisconnect {
 
     client.emit("connection-update", connections);
     client.emit("project-aplication-update", projectApplications);
+    client.join(client.user.id);
 
     await this.cacheService.setUserOnline(client.user.id, "connection");
   }

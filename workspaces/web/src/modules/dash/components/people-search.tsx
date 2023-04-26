@@ -88,7 +88,7 @@ const PeopleActionButton: React.FC<{
   const [loadingState, setLoadingState] = useState(false);
 
   if (connections.find((x) => x.developer.id == props.developerId))
-    return <button className="btn btn-xs btn-primary">Chat</button>;
+    return <div className="btn btn-xs btn-primary cursor-default">Connected</div>;
   else if (requests.find((x) => x.requesterId == props.developerId)) {
     const request = requests.find(x => x.requesterId == props.developerId);
     return (
