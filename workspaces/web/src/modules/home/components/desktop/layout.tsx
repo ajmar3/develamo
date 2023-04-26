@@ -25,7 +25,7 @@ export default function DesktopHomeLayout() {
   useEffect(() => {
     const token = document.cookie.split(";").find((c) => c.includes("Authorization"))?.split("=")[1];
     if (mutation.isSuccess && !token) {
-      document.cookie = `Authorization=${mutation.data}; path=/; SameSite=None; Secure`;
+      document.cookie = `Authorization=${mutation.data}; path=/; SameSite=None;`;
       setCount(count + 1);
     }
     if (mutation.isError) {
