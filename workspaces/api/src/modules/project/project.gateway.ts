@@ -85,6 +85,7 @@ export class ProjectGateway implements OnGatewayDisconnect {
       id
     );
     client.emit("channel-opened", openChannel);
+    client.join(id);
   }
 
   @SubscribeMessage("create-message")
@@ -93,10 +94,7 @@ export class ProjectGateway implements OnGatewayDisconnect {
       client.user.id,
       data
     );
-    newMessageInfo.participants.forEach((x) => {
-      // we do this so we only emit the message to those who have access
-      this.server.to(x.id).emit("new-message", newMessageInfo.message);
-    });
+    this.server.to(data.channelId).emit("new-message", newMessageInfo.message);
   }
 
   @SubscribeMessage("apply-to-project")

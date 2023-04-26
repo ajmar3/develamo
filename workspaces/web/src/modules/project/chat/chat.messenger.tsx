@@ -122,7 +122,7 @@ export const ProjectChatMessenger: React.FC = () => {
         {getOptionsMenu()}
       </div>
       <div className="h-[calc(100%-7.5rem)] w-full flex flex-col gap-3 overflow-y-scroll p-3">
-        {channelInfo.messages.length > 0 ? (
+        {channelMessages.length > 0 ? (
           <>
             {channelMessages.map((message) => (
               <div
