@@ -165,7 +165,7 @@ export const DashNotifications: React.FC = () => {
       {seenNotifications.length > 0 && (
         <>
           <div className="p-2">Previous</div>
-          <div className="flex flex-col">
+          <div className="flex flex-col max-h-100 overflow-hidden">
             {seenNotifications.map((x) => {
               if (x.referencedDeveloper) {
                 return (
