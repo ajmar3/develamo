@@ -1555,7 +1555,7 @@ export class ProjectService {
 
     if (userProjectSearchRequests.length > 2)
       throw new BadRequestException(
-        "You already have 2 pending project search requests"
+        "You already have 3 pending project search requests"
       );
 
     if (
@@ -1564,7 +1564,7 @@ export class ProjectService {
       )
     ) {
       throw new BadRequestException(
-        "You already have a pending project search for those allTechnologies"
+        "You already have a pending project search for those technologies"
       );
     }
 

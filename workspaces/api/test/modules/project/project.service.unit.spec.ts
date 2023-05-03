@@ -24,9 +24,23 @@ describe("ProjectService", () => {
               findMany: jest.fn(),
               findFirst: jest.fn(),
               create: jest.fn(),
+              update: jest.fn(),
+              findFirstOrThrow: jest.fn(),
             },
             projectChatChannel: {
               create: jest.fn(),
+              findFirst: jest.fn(),
+              update: jest.fn(),
+            },
+            projectLike: {
+              create: jest.fn(),
+              findMany: jest.fn(),
+              findFirst: jest.fn(),
+              deleteMany: jest.fn(),
+            },
+            projectSearchRequest: {
+              create: jest.fn(),
+              findMany: jest.fn(),
             },
             developer: {
               findFirst: jest.fn(),
@@ -46,6 +60,7 @@ describe("ProjectService", () => {
               findMany: jest.fn(),
               findFirst: jest.fn(),
             },
+            $transaction: jest.fn(),
           },
         },
         {
@@ -416,6 +431,366 @@ describe("ProjectService", () => {
       await expect(
         service.openChannel(developerId, channelId)
       ).rejects.toThrowError("You do not have access to that channel");
+    });
+  });
+
+  describe("editProjectInfo", () => {
+    let findFirstSpy: jest.SpyInstance;
+    let updateSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      findFirstSpy = jest.spyOn(prismaSerice.project, "findFirst");
+      updateSpy = jest.spyOn(prismaSerice.project, "update");
+    });
+
+    test("should edit a project", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+      const project = {
+        id: projectId,
+        ownerId: developerId,
+      };
+
+      findFirstSpy.mockResolvedValue(project);
+      updateSpy.mockResolvedValue("project");
+      const result = await service.editProjectInfo(
+        {
+          projectId: projectId,
+          title: faker.name.firstName(),
+          description: faker.lorem.paragraph(),
+          repoURL: faker.internet.url(),
+        },
+        developerId
+      );
+
+      expect(result).toEqual("project");
+      expect(prismaSerice.project.update).toBeCalledTimes(1);
+    });
+
+    test("should throw an error if the user is not the owner of the project", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+      const project = {
+        id: projectId,
+        ownerId: faker.datatype.uuid(),
+      };
+
+      findFirstSpy.mockResolvedValue(project);
+      await expect(
+        service.editProjectInfo(
+          {
+            projectId: projectId,
+            title: faker.name.firstName(),
+            description: faker.lorem.paragraph(),
+            repoURL: faker.internet.url(),
+          },
+          developerId
+        )
+      ).rejects.toThrowError("Cannot edit a project you don't own");
+    });
+
+    test("should throw an error if the project does not exist", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+
+      findFirstSpy.mockResolvedValue(null);
+      await expect(
+        service.editProjectInfo(
+          {
+            projectId: projectId,
+            title: faker.name.firstName(),
+            description: faker.lorem.paragraph(),
+            repoURL: faker.internet.url(),
+          },
+          developerId
+        )
+      ).rejects.toThrowError("Could not find a project with that Id.");
+    });
+  });
+
+  describe("likeProject", () => {
+    let findFirstProjectSpy: jest.SpyInstance;
+    let findFirstLikeSpy: jest.SpyInstance;
+    let createLikeSpy: jest.SpyInstance;
+    let findFirstOrThrowSpy: jest.SpyInstance;
+    let transactionSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      findFirstProjectSpy = jest.spyOn(prismaSerice.project, "findFirst");
+      findFirstLikeSpy = jest.spyOn(prismaSerice.projectLike, "findFirst");
+      createLikeSpy = jest.spyOn(prismaSerice.projectLike, "create");
+      findFirstOrThrowSpy = jest.spyOn(
+        prismaSerice.project,
+        "findFirstOrThrow"
+      );
+      transactionSpy = jest.spyOn(prismaSerice, "$transaction");
+    });
+
+    test("should like a project", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+      const project = {
+        id: projectId,
+        ownerId: developerId,
+      };
+
+      findFirstProjectSpy.mockResolvedValue(project);
+      findFirstOrThrowSpy.mockResolvedValue(project);
+      findFirstLikeSpy.mockResolvedValue(null);
+      createLikeSpy.mockResolvedValue("like");
+      transactionSpy.mockResolvedValue(["", "like"]);
+      const result = await service.likeProject(
+        { projectId: projectId },
+        developerId
+      );
+
+      expect(result).toEqual("like");
+      expect(prismaSerice.projectLike.create).toBeCalledTimes(1);
+      expect(prismaSerice.project.findFirstOrThrow).toBeCalledTimes(1);
+    });
+
+    test("should throw an error if the user has already liked the project", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+      const project = {
+        id: projectId,
+        ownerId: developerId,
+      };
+
+      findFirstProjectSpy.mockResolvedValue(project);
+      findFirstLikeSpy.mockResolvedValue("like");
+      await expect(
+        service.likeProject({ projectId: projectId }, developerId)
+      ).rejects.toThrowError("You have already liked this project");
+    });
+
+    test("should throw an error if the project does not exist", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+
+      findFirstProjectSpy.mockResolvedValue(null);
+      await expect(
+        service.likeProject({ projectId: projectId }, developerId)
+      ).rejects.toThrowError("This project does not exist");
+    });
+  });
+
+  describe("unlikeProject", () => {
+    let findFirstProjectSpy: jest.SpyInstance;
+    let findFirstLikeSpy: jest.SpyInstance;
+    let createLikeSpy: jest.SpyInstance;
+    let findFirstOrThrowSpy: jest.SpyInstance;
+    let transactionSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      findFirstProjectSpy = jest.spyOn(prismaSerice.project, "findFirst");
+      findFirstLikeSpy = jest.spyOn(prismaSerice.projectLike, "findFirst");
+      createLikeSpy = jest.spyOn(prismaSerice.projectLike, "create");
+      findFirstOrThrowSpy = jest.spyOn(
+        prismaSerice.project,
+        "findFirstOrThrow"
+      );
+      transactionSpy = jest.spyOn(prismaSerice, "$transaction");
+    });
+
+    test("should unlike a project", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+      const project = {
+        id: projectId,
+        ownerId: developerId,
+      };
+
+      findFirstProjectSpy.mockResolvedValue(project);
+      findFirstOrThrowSpy.mockResolvedValue(project);
+      findFirstLikeSpy.mockResolvedValue("like");
+      createLikeSpy.mockResolvedValue("like");
+      transactionSpy.mockResolvedValue(["", "like"]);
+      const result = await service.unlikeProject(
+        { projectId: projectId },
+        developerId
+      );
+
+      expect(result).toEqual("like");
+      expect(prismaSerice.projectLike.deleteMany).toBeCalledTimes(1);
+      expect(prismaSerice.project.findFirstOrThrow).toBeCalledTimes(1);
+    });
+
+    test("should throw an error if the project does not exist", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+
+      findFirstProjectSpy.mockResolvedValue(null);
+      await expect(
+        service.unlikeProject({ projectId: projectId }, developerId)
+      ).rejects.toThrowError("Could not find that project");
+    });
+  });
+
+  describe("editChannel", () => {
+    let findFirstSpy: jest.SpyInstance;
+    let updateSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      findFirstSpy = jest.spyOn(prismaSerice.projectChatChannel, "findFirst");
+      updateSpy = jest.spyOn(prismaSerice.projectChatChannel, "update");
+    });
+
+    test("should edit a channel", async () => {
+      const developerId = faker.datatype.uuid();
+      const channelId = faker.datatype.uuid();
+      const channel = {
+        id: channelId,
+        name: "test",
+        admins: [{ id: developerId }],
+      };
+
+      findFirstSpy.mockResolvedValue(channel);
+      updateSpy.mockResolvedValue("channel");
+      const result = await service.editChannel(
+        {
+          channelId: channelId,
+          name: faker.name.firstName(),
+        },
+        developerId
+      );
+
+      expect(result).toEqual("channel");
+      expect(prismaSerice.projectChatChannel.update).toBeCalledTimes(1);
+    });
+
+    test("should throw an error if the user is not a channel admin", async () => {
+      const developerId = faker.datatype.uuid();
+      const channelId = faker.datatype.uuid();
+      const channel = {
+        id: channelId,
+        name: "test",
+        admins: [{ id: faker.datatype.uuid() }],
+      };
+
+      findFirstSpy.mockResolvedValue(channel);
+      await expect(
+        service.editChannel(
+          {
+            channelId: channelId,
+            name: faker.name.firstName(),
+          },
+          developerId
+        )
+      ).rejects.toThrowError("Only channel admins can remove channel members");
+    });
+
+    test("should throw an error if the channel does not exist", async () => {
+      const developerId = faker.datatype.uuid();
+
+      findFirstSpy.mockResolvedValue(null);
+      await expect(
+        service.editChannel(
+          {
+            channelId: faker.datatype.uuid(),
+            name: faker.name.firstName(),
+          },
+          developerId
+        )
+      ).rejects.toThrowError("Could not find channel");
+    });
+
+    test("should throw an error if the channel name is 'general'", async () => {
+      const developerId = faker.datatype.uuid();
+      const channelId = faker.datatype.uuid();
+      const channel = {
+        id: channelId,
+        name: "general",
+        admins: [{ id: developerId }],
+      };
+
+      findFirstSpy.mockResolvedValue(channel);
+      await expect(
+        service.editChannel(
+          {
+            channelId: channelId,
+            name: faker.name.firstName(),
+          },
+          developerId
+        )
+      ).rejects.toThrowError("Cannot change the general channel");
+    });
+
+    test("should throw error if the new name is general", async () => {
+      const developerId = faker.datatype.uuid();
+      const channelId = faker.datatype.uuid();
+      const channel = {
+        id: channelId,
+        name: "test",
+        admins: [{ id: developerId }],
+      };
+
+      findFirstSpy.mockResolvedValue(channel);
+      await expect(
+        service.editChannel(
+          {
+            channelId: channelId,
+            name: "general",
+          },
+          developerId
+        )
+      ).rejects.toThrowError("Cannot name a channel 'General'");
+    });
+  });
+
+  describe("createProjectSearchRequest", () => {
+    let findManySpy: jest.SpyInstance;
+    let createSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      findManySpy = jest.spyOn(prismaSerice.projectSearchRequest, "findMany");
+      createSpy = jest.spyOn(prismaSerice.projectSearchRequest, "create");
+    });
+
+    test("should create a project search request", async () => {
+      const developerId = faker.datatype.uuid();
+      const projectId = faker.datatype.uuid();
+
+      findManySpy.mockResolvedValue([]);
+      createSpy.mockResolvedValue("request");
+      const result = await service.createProjectSearchRequest(
+        { tagIds: [faker.datatype.uuid()], allTechnologies: true },
+        developerId
+      );
+
+      expect(result).toEqual(
+        "A project search request has been created for you."
+      );
+      expect(prismaSerice.projectSearchRequest.create).toBeCalledTimes(1);
+    });
+
+    test("should throw an error if the user has already made 3 requests", async () => {
+      const developerId = faker.datatype.uuid();
+
+      findManySpy.mockResolvedValue([{}, {}, {}]);
+      await expect(
+        service.createProjectSearchRequest(
+          { tagIds: [faker.datatype.uuid()], allTechnologies: true },
+          developerId
+        )
+      ).rejects.toThrowError(
+        "You already have 3 pending project search requests"
+      );
+    });
+
+    test("should throw an error if the user has already made a request with the same tags", async () => {
+      const developerId = faker.datatype.uuid();
+      const tagId = faker.datatype.uuid();
+
+      findManySpy.mockResolvedValue([{ tags: [{ id: tagId }] }]);
+      await expect(
+        service.createProjectSearchRequest(
+          { tagIds: [tagId], allTechnologies: true },
+          developerId
+        )
+      ).rejects.toThrowError(
+        "You already have a pending project search for those technologies"
+      );
     });
   });
 });
